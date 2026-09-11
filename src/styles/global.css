@@ -128,6 +128,9 @@
   }
 
   .site-name {
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
     font-family: var(--font-editorial);
     font-size: 1.25rem;
     font-weight: 600;
@@ -145,6 +148,9 @@
   }
 
   .nav-list a {
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
     text-decoration: none;
   }
 
@@ -249,7 +255,9 @@
   }
 
   .input-line:focus-within {
-    border-color: var(--ink);
+    border-color: var(--academic-blue);
+    outline: 2px solid var(--academic-blue);
+    outline-offset: 4px;
   }
 
   #raw-score {
@@ -321,11 +329,6 @@
 
   .result-zone {
     border-left: var(--border-width) solid var(--rule);
-    transition: background-color var(--transition-fast);
-  }
-
-  .result-zone.is-updated {
-    background: color-mix(in srgb, var(--academic-blue) 5%, transparent);
   }
 
   .result-value {
@@ -340,7 +343,8 @@
     white-space: nowrap;
   }
 
-  .result-value span {
+  .result-value span,
+  .supporting-result-value span {
     color: var(--academic-blue);
     font-size: 0.42em;
     letter-spacing: -0.02em;
@@ -459,7 +463,7 @@
   .print-chart,
   .download-pdf {
     flex: 0 0 auto;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     padding: 0.65rem 0.9rem;
     border: var(--border-width) solid var(--academic-blue);
     border-radius: var(--radius-sm);
@@ -814,7 +818,9 @@
   }
 
   .supporting-input-line:focus-within {
-    border-color: var(--ink);
+    border-color: var(--academic-blue);
+    outline: 2px solid var(--academic-blue);
+    outline-offset: 4px;
   }
 
   .supporting-input-line input {
@@ -883,6 +889,7 @@
   }
 
   .supporting-result > :nth-last-child(2) {
+    min-height: 1.6em;
     margin-top: var(--space-3);
     color: var(--academic-blue);
     font-family: var(--font-mono);
@@ -891,6 +898,7 @@
   }
 
   .supporting-summary {
+    min-height: 3em;
     margin-top: var(--space-2);
     color: var(--ink-muted);
     font-size: var(--text-sm);

@@ -23,8 +23,8 @@ const graphPath = generateSquareRootCurveGraphPoints()
 ---
 
 <BaseLayout
-  title="Square Root Curve Calculator"
-  description="Enter a raw grade to see its square-root curved score instantly."
+  title="Square Root Curve Calculator & Chart | SquareRootCurve.com"
+  description="Calculate square-root curved grades instantly, view the complete 0–100 chart, print or save it, and learn the formula with worked examples."
 >
   <Container class="opening">
     <div class="opening-copy">
@@ -57,6 +57,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
                 inputmode="decimal"
                 autocomplete="off"
                 aria-describedby="score-error"
+                aria-invalid="false"
               />
               <span class="unit" aria-hidden="true">%</span>
             </div>
@@ -71,7 +72,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
 
           <div class="score-zone result-zone">
             <span class="score-label">Curved score</span>
-            <output id="curved-score" for="raw-score" class="result-value" aria-live="polite">
+            <output id="curved-score" for="raw-score" class="result-value">
               80<span>%</span>
             </output>
             <p id="score-boost" class="score-boost">+16 percentage points</p>
@@ -223,7 +224,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
       </footer>
     </section>
 
-    <section class="visualize-section" aria-labelledby="visualize-title">
+    <section id="graph" class="visualize-section" aria-labelledby="visualize-title">
       <header class="visualize-heading">
         <div class="section-kicker">
           <span aria-hidden="true">03</span>
@@ -236,6 +237,8 @@ const graphPath = generateSquareRootCurveGraphPoints()
       <figure class="curve-figure">
         <svg
           class="curve-graph"
+          width="740"
+          height="450"
           viewBox="0 0 740 450"
           role="img"
           aria-labelledby="curve-graph-title curve-graph-description"
@@ -334,6 +337,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
                   inputmode="decimal"
                   autocomplete="off"
                   aria-describedby="reverse-error"
+                  aria-invalid="false"
                 />
                 <span aria-hidden="true">%</span>
               </div>
@@ -342,7 +346,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
 
             <div class="supporting-result">
               <span class="supporting-result-label">Required raw score</span>
-              <output id="required-raw-score" for="target-curved-score" class="supporting-result-value" aria-live="polite">64%</output>
+              <output id="required-raw-score" for="target-curved-score" class="supporting-result-value">64<span>%</span></output>
               <p id="reverse-relationship">80% curved → 64% raw</p>
               <p id="reverse-summary" class="supporting-summary">A raw score of 64% curves to 80%.</p>
             </div>
@@ -373,6 +377,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
                     inputmode="decimal"
                     autocomplete="off"
                     aria-describedby="points-error"
+                    aria-invalid="false"
                   />
                 </div>
               </div>
@@ -390,6 +395,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
                     inputmode="decimal"
                     autocomplete="off"
                     aria-describedby="points-error"
+                    aria-invalid="false"
                   />
                 </div>
               </div>
@@ -399,7 +405,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
             <div class="points-result">
               <div class="points-result-primary">
                 <span class="supporting-result-label">Curved score</span>
-                <output id="points-curved-score" for="points-earned points-possible" class="supporting-result-value" aria-live="polite">80%</output>
+                <output id="points-curved-score" for="points-earned points-possible" class="supporting-result-value">80<span>%</span></output>
               </div>
               <dl class="points-result-details">
                 <div>
@@ -712,7 +718,6 @@ const graphPath = generateSquareRootCurveGraphPoints()
   const formulaOutput = document.querySelector<HTMLOutputElement>('#formula-output');
   const errorOutput = document.querySelector<HTMLElement>('#score-error');
   const resultZone = document.querySelector<HTMLElement>('.result-zone');
-  const chartCells = document.querySelectorAll<HTMLElement>('[data-score]');
   const printButton = document.querySelector<HTMLButtonElement>('.print-chart');
   const downloadPdfButton = document.querySelector<HTMLButtonElement>('.download-pdf');
   const graphCurrent = document.querySelector<SVGGElement>('#graph-current');
@@ -724,19 +729,32 @@ const graphPath = generateSquareRootCurveGraphPoints()
   const graphBox = { left: 72, right: 700, top: 34, bottom: 390 };
   const graphX = (value: number) => graphBox.left + (value / 100) * (graphBox.right - graphBox.left);
   const graphY = (value: number) => graphBox.bottom - (value / 100) * (graphBox.bottom - graphBox.top);
+  const renderPercentage = (output: HTMLOutputElement, value: string) => {
+    const unit = document.createElement('span');
+    unit.textContent = '%';
+    output.replaceChildren(value, unit);
+  };
 
   if (input && curvedOutput && boostOutput && formulaOutput && errorOutput && resultZone) {
-    let highlightTimer: number | undefined;
+    let highlightedChartCells = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-score].is-current'),
+    );
+
+    const clearChartHighlight = () => {
+      highlightedChartCells.forEach((cell) => {
+        cell.classList.remove('is-current');
+        const label = cell.querySelector<HTMLElement>('.current-label');
+        if (label) label.textContent = '';
+      });
+      highlightedChartCells = [];
+    };
 
     const clearResult = () => {
       curvedOutput.textContent = '—';
       boostOutput.textContent = '';
       formulaOutput.textContent = '—';
       resultZone.classList.add('is-empty');
-      chartCells.forEach((cell) => cell.classList.remove('is-current'));
-      document.querySelectorAll('.current-label').forEach((label) => {
-        label.textContent = '';
-      });
+      clearChartHighlight();
       graphCurrent?.setAttribute('hidden', '');
     };
 
@@ -765,13 +783,16 @@ const graphPath = generateSquareRootCurveGraphPoints()
     };
 
     const updateChartHighlight = (raw: number) => {
-      const highlightedScore = Number.isInteger(raw) ? String(raw) : null;
+      clearChartHighlight();
+      if (!Number.isInteger(raw)) return;
 
-      chartCells.forEach((cell) => {
-        const isCurrent = highlightedScore !== null && cell.dataset.score === highlightedScore;
-        cell.classList.toggle('is-current', isCurrent);
+      highlightedChartCells = Array.from(
+        document.querySelectorAll<HTMLElement>(`[data-score="${raw}"]`),
+      );
+      highlightedChartCells.forEach((cell) => {
+        cell.classList.add('is-current');
         const label = cell.querySelector<HTMLElement>('.current-label');
-        if (label) label.textContent = isCurrent ? 'Current calculator score: ' : '';
+        if (label) label.textContent = 'Current calculator score: ';
       });
     };
 
@@ -790,20 +811,16 @@ const graphPath = generateSquareRootCurveGraphPoints()
       const raw = formatCurveValue(result.raw);
       const curved = formatCurveValue(result.curved);
       const boost = formatCurveValue(result.boost);
-      const boostPrefix = result.boost > 0 ? '+' : '';
+      const boostPrefix = Number(boost) > 0 ? '+' : '';
 
       input.setAttribute('aria-invalid', 'false');
       errorOutput.textContent = '';
-      curvedOutput.innerHTML = `${curved}<span>%</span>`;
+      renderPercentage(curvedOutput, curved);
       boostOutput.textContent = `${boostPrefix}${boost} percentage points`;
       formulaOutput.textContent = `√${raw} × 10 = ${curved}`;
       updateChartHighlight(result.raw);
       updateGraphPoint(result.raw);
-      resultZone.classList.remove('is-empty', 'is-updated');
-      void resultZone.offsetWidth;
-      resultZone.classList.add('is-updated');
-      window.clearTimeout(highlightTimer);
-      highlightTimer = window.setTimeout(() => resultZone.classList.remove('is-updated'), 240);
+      resultZone.classList.remove('is-empty');
     };
 
     input.addEventListener('input', updateResult);
@@ -811,6 +828,9 @@ const graphPath = generateSquareRootCurveGraphPoints()
 
   printButton?.addEventListener('click', () => window.print());
   downloadPdfButton?.addEventListener('click', () => window.print());
+  document.querySelectorAll<HTMLFormElement>('form').forEach((form) => {
+    form.addEventListener('submit', (event) => event.preventDefault());
+  });
 
   const reverseInput = document.querySelector<HTMLInputElement>('#target-curved-score');
   const reverseResult = document.querySelector<HTMLOutputElement>('#required-raw-score');
@@ -851,7 +871,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
 
       reverseInput.setAttribute('aria-invalid', 'false');
       reverseError.textContent = '';
-      reverseResult.textContent = `${raw}%`;
+      renderPercentage(reverseResult, raw);
       reverseRelationship.textContent = `${curved}% curved → ${raw}% raw`;
       reverseSummary.textContent = `A raw score of ${raw}% curves to ${curved}%.`;
       reverseFormula.textContent = `(${curved} ÷ 10)² = ${raw}`;
@@ -918,12 +938,12 @@ const graphPath = generateSquareRootCurveGraphPoints()
       const raw = formatCurveValue(result.raw);
       const curved = formatCurveValue(result.curved);
       const boost = formatCurveValue(result.boost);
-      const boostPrefix = result.boost > 0 ? '+' : '';
+      const boostPrefix = Number(boost) > 0 ? '+' : '';
 
       earnedInput.setAttribute('aria-invalid', 'false');
       possibleInput.setAttribute('aria-invalid', 'false');
       pointsError.textContent = '';
-      pointsCurvedResult.textContent = `${curved}%`;
+      renderPercentage(pointsCurvedResult, curved);
       pointsRawResult.textContent = `${raw}%`;
       pointsBoostResult.textContent = `${boostPrefix}${boost} percentage points`;
       pointsNormalizedFormula.textContent = `${earned} ÷ ${possible} = ${raw}%`;
@@ -1003,7 +1023,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
       classRawAverage.textContent = `${formatCurveValue(batch.summary.rawAverage)}%`;
       classCurvedAverage.textContent = `${formatCurveValue(batch.summary.curvedAverage)}%`;
       const averageBoost = formatCurveValue(batch.summary.averageBoost);
-      classAverageBoost.textContent = `${batch.summary.averageBoost > 0 ? '+' : ''}${averageBoost} points`;
+      classAverageBoost.textContent = `${Number(averageBoost) > 0 ? '+' : ''}${averageBoost} points`;
 
       const rows = document.createDocumentFragment();
       batch.results.forEach((result, index) => {
@@ -1018,7 +1038,7 @@ const graphPath = generateSquareRootCurveGraphPoints()
         curved.textContent = formatCurveValue(result.curved);
         const boost = document.createElement('td');
         const formattedBoost = formatCurveValue(result.boost);
-        boost.textContent = `${result.boost > 0 ? '+' : ''}${formattedBoost}`;
+        boost.textContent = `${Number(formattedBoost) > 0 ? '+' : ''}${formattedBoost}`;
 
         row.append(position, raw, curved, boost);
         rows.append(row);

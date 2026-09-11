@@ -5,9 +5,14 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description: string;
+  canonical?: string;
 }
 
-const { title, description } = Astro.props;
+const {
+  title,
+  description,
+  canonical = 'https://squarerootcurve.com/',
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -17,6 +22,15 @@ const { title, description } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="SquareRootCurve.com" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
