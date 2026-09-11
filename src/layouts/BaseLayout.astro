@@ -1,0 +1,58 @@
+---
+import Container from '../components/Container.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@400;600&display=swap"
+    />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="site-header">
+      <Container class="masthead">
+        <a class="site-name" href="/" aria-label="Square Root Curve home">
+          Square Root Curve
+        </a>
+        <nav aria-label="Primary navigation">
+          <ul class="nav-list">
+            <li><a href="#calculator">Calculator</a></li>
+            <li><a href="#chart">Chart</a></li>
+            <li><a href="#formula">Formula</a></li>
+          </ul>
+        </nav>
+      </Container>
+    </header>
+
+    <main id="main-content">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <Container class="footer-inner">
+        <span>SquareRootCurve.com</span>
+        <span class="footer-note">An academic grading reference</span>
+      </Container>
+    </footer>
+  </body>
+</html>

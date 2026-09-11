@@ -1,0 +1,1059 @@
+---
+import Container from '../components/Container.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import {
+  formatCurveValue,
+  generateSquareRootCurveChart,
+  generateSquareRootCurveGraphPoints,
+} from '../lib/squareRootCurve';
+
+const chartEntries = generateSquareRootCurveChart();
+const desktopGroupSize = Math.ceil(chartEntries.length / 3);
+const desktopGroups = Array.from({ length: 3 }, (_, groupIndex) =>
+  chartEntries.slice(groupIndex * desktopGroupSize, (groupIndex + 1) * desktopGroupSize),
+);
+const perfectSquares = new Set([0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100]);
+const graphTicks = [0, 20, 40, 60, 80, 100];
+const graphBox = { left: 72, right: 700, top: 34, bottom: 390 };
+const graphX = (value: number) => graphBox.left + (value / 100) * (graphBox.right - graphBox.left);
+const graphY = (value: number) => graphBox.bottom - (value / 100) * (graphBox.bottom - graphBox.top);
+const graphPath = generateSquareRootCurveGraphPoints()
+  .map((point, index) => `${index === 0 ? 'M' : 'L'} ${graphX(point.x).toFixed(2)} ${graphY(point.y).toFixed(2)}`)
+  .join(' ');
+---
+
+<BaseLayout
+  title="Square Root Curve Calculator"
+  description="Enter a raw grade to see its square-root curved score instantly."
+>
+  <Container class="opening">
+    <div class="opening-copy">
+      <p class="eyebrow">Grading reference</p>
+      <h1>Square Root Curve Calculator</h1>
+      <p class="lede">
+        Enter a raw grade to see its square-root curved score instantly.
+      </p>
+    </div>
+
+    <section id="calculator" class="workbench" aria-labelledby="workbench-title">
+      <header class="workbench-heading">
+        <span aria-hidden="true">01</span>
+        <h2 id="workbench-title">Calculate</h2>
+      </header>
+
+      <form class="calculator" novalidate>
+        <div class="calculation-grid">
+          <div class="score-zone input-zone">
+            <label for="raw-score">Raw score</label>
+            <div class="input-line">
+              <input
+                id="raw-score"
+                name="raw-score"
+                type="number"
+                value="64"
+                min="0"
+                max="100"
+                step="any"
+                inputmode="decimal"
+                autocomplete="off"
+                aria-describedby="score-error"
+              />
+              <span class="unit" aria-hidden="true">%</span>
+            </div>
+            <p id="score-error" class="input-error" aria-live="polite"></p>
+          </div>
+
+          <div class="direction" aria-hidden="true">
+            <span class="direction-line"></span>
+            <span class="direction-arrow">→</span>
+          </div>
+          <span class="sr-only">is curved to</span>
+
+          <div class="score-zone result-zone">
+            <span class="score-label">Curved score</span>
+            <output id="curved-score" for="raw-score" class="result-value" aria-live="polite">
+              80<span>%</span>
+            </output>
+            <p id="score-boost" class="score-boost">+16 percentage points</p>
+          </div>
+        </div>
+
+        <div class="formula-row">
+          <div>
+            <span class="formula-label">Square-root curve formula</span>
+            <output id="formula-output" for="raw-score" class="formula-value">
+              √64 × 10 = 80
+            </output>
+          </div>
+          <p class="formula-note">
+            Lower raw scores receive a larger boost while 100 remains 100.
+          </p>
+        </div>
+      </form>
+    </section>
+
+    <section id="chart" class="chart-section" aria-labelledby="chart-title">
+      <div class="chart-heading">
+        <div class="chart-title-group">
+          <div class="section-kicker">
+            <span aria-hidden="true">02</span>
+            <span>Chart</span>
+          </div>
+          <h2 id="chart-title">Square Root Curve Chart</h2>
+          <p>Use the chart to look up the curved grade for any raw score from 0 to 100.</p>
+        </div>
+        <div class="chart-actions">
+          <div class="chart-action-buttons">
+            <button class="print-chart" type="button">Print chart</button>
+            <button class="download-pdf" type="button" aria-describedby="export-help">
+              Download PDF
+            </button>
+          </div>
+          <p id="export-help" class="export-help">
+            Opens the print dialog. Choose “Save as PDF” to save a copy.
+          </p>
+        </div>
+      </div>
+
+      <div class="print-heading" aria-hidden="true">
+        <div class="print-brand">
+          <p>SquareRootCurve.com</p>
+          <p>Grading Reference</p>
+        </div>
+        <h2>Square Root Curve Chart</h2>
+        <p class="print-formula">Curved grade = 10 × √raw grade</p>
+        <p class="print-description">
+          Use this chart to convert raw percentage scores to square-root curved grades.
+        </p>
+      </div>
+
+      <div class="chart-table chart-table-desktop">
+        <table>
+          <caption class="sr-only">
+            Square-root curved grades for raw scores from 0 through 100, arranged in three groups.
+          </caption>
+          <thead>
+            <tr>
+              {desktopGroups.map(() => (
+                <>
+                  <th scope="col">Raw</th>
+                  <th scope="col">Curved</th>
+                </>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: desktopGroupSize }, (_, rowIndex) => (
+              <tr>
+                {desktopGroups.map((group) => {
+                  const entry = group[rowIndex];
+                  return entry ? (
+                    <>
+                      <td
+                        data-score={entry.raw}
+                        class:list={[
+                          'chart-raw',
+                          { 'is-anchor': perfectSquares.has(entry.raw), 'is-current': entry.raw === 64 },
+                        ]}
+                      >
+                        <span class="current-label sr-only">
+                          {entry.raw === 64 ? 'Current calculator score: ' : ''}
+                        </span>
+                        {entry.raw}
+                      </td>
+                      <td
+                        data-score={entry.raw}
+                        class:list={[
+                          'chart-curved',
+                          { 'is-anchor': perfectSquares.has(entry.raw), 'is-current': entry.raw === 64 },
+                        ]}
+                      >
+                        {formatCurveValue(entry.curved)}
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td class="chart-empty" aria-hidden="true"></td>
+                      <td class="chart-empty" aria-hidden="true"></td>
+                    </>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="chart-table chart-table-mobile">
+        <table>
+          <caption class="sr-only">
+            Square-root curved grades for raw scores from 0 through 100.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Raw score</th>
+              <th scope="col">Curved score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {chartEntries.map((entry) => (
+              <tr class:list={{ 'is-anchor': perfectSquares.has(entry.raw) }}>
+                <th
+                  scope="row"
+                  data-score={entry.raw}
+                  class:list={{ 'is-current': entry.raw === 64 }}
+                >
+                  <span class="current-label sr-only">
+                    {entry.raw === 64 ? 'Current calculator score: ' : ''}
+                  </span>
+                  {entry.raw}
+                </th>
+                <td data-score={entry.raw} class:list={{ 'is-current': entry.raw === 64 }}>
+                  {formatCurveValue(entry.curved)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="print-footer" aria-hidden="true">
+        <p>SquareRootCurve.com</p>
+        <p>Values rounded to one decimal place where needed.</p>
+      </footer>
+    </section>
+
+    <section class="visualize-section" aria-labelledby="visualize-title">
+      <header class="visualize-heading">
+        <div class="section-kicker">
+          <span aria-hidden="true">03</span>
+          <span>Visualize</span>
+        </div>
+        <h2 id="visualize-title">How the Square Root Curve Changes Grades</h2>
+        <p>The curved score rises quickly at lower grades and gradually approaches 100.</p>
+      </header>
+
+      <figure class="curve-figure">
+        <svg
+          class="curve-graph"
+          viewBox="0 0 740 450"
+          role="img"
+          aria-labelledby="curve-graph-title curve-graph-description"
+        >
+          <title id="curve-graph-title">Square-root grading curve from 0 to 100</title>
+          <desc id="curve-graph-description">
+            The square-root curve starts at 0, rises above the unchanged-score line for scores
+            between 0 and 100, and meets it again at 100.
+          </desc>
+
+          <g class="graph-grid" aria-hidden="true">
+            {graphTicks.map((tick) => (
+              <>
+                <line x1={graphX(tick)} y1={graphBox.top} x2={graphX(tick)} y2={graphBox.bottom} />
+                <line x1={graphBox.left} y1={graphY(tick)} x2={graphBox.right} y2={graphY(tick)} />
+              </>
+            ))}
+          </g>
+
+          <g class="graph-axes" aria-hidden="true">
+            <line x1={graphBox.left} y1={graphBox.top} x2={graphBox.left} y2={graphBox.bottom} />
+            <line x1={graphBox.left} y1={graphBox.bottom} x2={graphBox.right} y2={graphBox.bottom} />
+          </g>
+
+          <g class="graph-ticks" aria-hidden="true">
+            {graphTicks.map((tick) => (
+              <>
+                <text x={graphX(tick)} y="420" text-anchor="middle">{tick}</text>
+                <text x="56" y={graphY(tick) + 5} text-anchor="end">{tick}</text>
+              </>
+            ))}
+            <text class="graph-axis-label" x="386" y="445" text-anchor="middle">Raw score</text>
+            <text class="graph-axis-label" x="18" y="212" text-anchor="middle" transform="rotate(-90 18 212)">
+              Curved score
+            </text>
+          </g>
+
+          <line
+            class="graph-reference"
+            x1={graphBox.left}
+            y1={graphBox.bottom}
+            x2={graphBox.right}
+            y2={graphBox.top}
+            aria-hidden="true"
+          />
+          <path class="graph-curve" d={graphPath} aria-hidden="true" />
+
+          <g class="graph-direct-labels" aria-hidden="true">
+            <text class="curve-label" x={graphX(23)} y={graphY(48) - 16}>Square root curve</text>
+            <text class="reference-label" x={graphX(77) - 8} y={graphY(77) + 23} text-anchor="end">No curve</text>
+          </g>
+
+          <g id="graph-current" class="graph-current" aria-hidden="true">
+            <line id="graph-guide-x" class="graph-guide" x1={graphX(64)} y1={graphY(80)} x2={graphX(64)} y2={graphBox.bottom} />
+            <line id="graph-guide-y" class="graph-guide" x1={graphBox.left} y1={graphY(80)} x2={graphX(64)} y2={graphY(80)} />
+            <circle id="graph-current-point" cx={graphX(64)} cy={graphY(80)} r="5.5" />
+            <text id="graph-current-label" x={graphX(64) + 13} y={graphY(80) - 13}>64 → 80</text>
+          </g>
+        </svg>
+        <figcaption>
+          Scores below 100 sit above the no-curve line, showing the increase produced by the square-root curve.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="more-calculators" class="more-calculators" aria-labelledby="more-calculators-title">
+      <header class="more-calculators-heading">
+        <div class="section-kicker">
+          <span aria-hidden="true">04</span>
+          <span>Calculate more</span>
+        </div>
+        <h2 id="more-calculators-title">More Ways to Use the Square Root Curve</h2>
+        <p>Work backward from a target grade or calculate directly from points earned.</p>
+      </header>
+
+      <div class="calculator-spread">
+        <form id="reverse-calculator" class="supporting-tool reverse-tool" novalidate>
+          <header class="supporting-tool-heading">
+            <p class="method-label">Method A</p>
+            <h3>Reverse Calculator</h3>
+            <p>What raw score do I need to reach a desired curved score?</p>
+          </header>
+
+          <div class="supporting-tool-body">
+            <div class="supporting-input-group">
+              <label for="target-curved-score">Target curved score</label>
+              <div class="supporting-input-line">
+                <input
+                  id="target-curved-score"
+                  name="target-curved-score"
+                  type="number"
+                  value="80"
+                  min="0"
+                  max="100"
+                  step="any"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  aria-describedby="reverse-error"
+                />
+                <span aria-hidden="true">%</span>
+              </div>
+              <p id="reverse-error" class="supporting-error" aria-live="polite"></p>
+            </div>
+
+            <div class="supporting-result">
+              <span class="supporting-result-label">Required raw score</span>
+              <output id="required-raw-score" for="target-curved-score" class="supporting-result-value" aria-live="polite">64%</output>
+              <p id="reverse-relationship">80% curved → 64% raw</p>
+              <p id="reverse-summary" class="supporting-summary">A raw score of 64% curves to 80%.</p>
+            </div>
+          </div>
+
+          <output id="reverse-formula" for="target-curved-score" class="supporting-formula">(80 ÷ 10)² = 64</output>
+        </form>
+
+        <form id="points-calculator" class="supporting-tool points-tool" novalidate>
+          <header class="supporting-tool-heading">
+            <p class="method-label">Method B</p>
+            <h3>Points-Based Calculator</h3>
+            <p>Convert points earned on an assessment into a square-root curved grade.</p>
+          </header>
+
+          <div class="supporting-tool-body">
+            <div class="points-inputs">
+              <div class="supporting-input-group">
+                <label for="points-earned">Points earned</label>
+                <div class="supporting-input-line">
+                  <input
+                    id="points-earned"
+                    name="points-earned"
+                    type="number"
+                    value="32"
+                    min="0"
+                    step="any"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    aria-describedby="points-error"
+                  />
+                </div>
+              </div>
+              <span class="points-separator" aria-hidden="true">out of</span>
+              <div class="supporting-input-group">
+                <label for="points-possible">Points possible</label>
+                <div class="supporting-input-line">
+                  <input
+                    id="points-possible"
+                    name="points-possible"
+                    type="number"
+                    value="50"
+                    min="0"
+                    step="any"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    aria-describedby="points-error"
+                  />
+                </div>
+              </div>
+            </div>
+            <p id="points-error" class="supporting-error" aria-live="polite"></p>
+
+            <div class="points-result">
+              <div class="points-result-primary">
+                <span class="supporting-result-label">Curved score</span>
+                <output id="points-curved-score" for="points-earned points-possible" class="supporting-result-value" aria-live="polite">80%</output>
+              </div>
+              <dl class="points-result-details">
+                <div>
+                  <dt>Raw percentage</dt>
+                  <dd id="points-raw-score">64%</dd>
+                </div>
+                <div>
+                  <dt>Boost</dt>
+                  <dd id="points-boost">+16 percentage points</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <div class="supporting-formula points-formula">
+            <output id="points-normalized-formula" for="points-earned points-possible">32 ÷ 50 = 64%</output>
+            <output id="points-curve-formula" for="points-earned points-possible">√64 × 10 = 80</output>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="class-calculator" class="class-calculator" aria-labelledby="class-calculator-title">
+      <header class="class-calculator-heading">
+        <div class="section-kicker">
+          <span aria-hidden="true">05</span>
+          <span>Class calculator</span>
+        </div>
+        <h2 id="class-calculator-title">Curve a Whole Class</h2>
+        <p>Paste multiple raw grades to calculate every student's square-root curved score at once.</p>
+      </header>
+
+      <form class="class-calculator-form" novalidate>
+        <div class="class-input-pane">
+          <label for="class-raw-scores">Raw scores</label>
+          <p id="class-input-help" class="class-input-help">
+            Separate scores with new lines, commas, spaces, or tabs.
+          </p>
+          <textarea
+            id="class-raw-scores"
+            name="class-raw-scores"
+            rows="12"
+            placeholder="64&#10;72&#10;81&#10;49&#10;90"
+            autocomplete="off"
+            spellcheck="false"
+            aria-describedby="class-input-help class-errors"
+            aria-invalid="false"
+          ></textarea>
+          <p id="class-errors" class="class-errors"></p>
+
+          <div class="class-actions">
+            <button class="copy-results" type="button" disabled>Copy results</button>
+            <button class="clear-class" type="button">Clear</button>
+            <p id="class-copy-status" class="class-copy-status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <div class="class-results-pane">
+          <p id="class-empty" class="class-empty">Paste grades above to calculate the class.</p>
+
+          <div id="class-output" hidden>
+            <dl class="class-summary" aria-label="Class summary">
+              <div>
+                <dt>Valid scores</dt>
+                <dd id="class-count">0 scores</dd>
+              </div>
+              <div>
+                <dt>Raw average</dt>
+                <dd id="class-raw-average">—</dd>
+              </div>
+              <div>
+                <dt>Curved average</dt>
+                <dd id="class-curved-average">—</dd>
+              </div>
+              <div>
+                <dt>Average boost</dt>
+                <dd id="class-average-boost">—</dd>
+              </div>
+            </dl>
+
+            <div class="class-table-scroll">
+              <table class="class-results-table">
+                <caption class="sr-only">Square-root curved results for the pasted raw scores.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Raw score</th>
+                    <th scope="col">Curved score</th>
+                    <th scope="col">Boost</th>
+                  </tr>
+                </thead>
+                <tbody id="class-results-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section id="formula" class="reference-section formula-reference-section" aria-labelledby="formula-title">
+      <header class="reference-heading">
+        <div class="section-kicker">
+          <span aria-hidden="true">06</span>
+          <span>Formula</span>
+        </div>
+        <h2 id="formula-title">Square Root Curve Formula</h2>
+      </header>
+
+      <div class="formula-sheet">
+        <div class="formula-display">
+          <p class="formula-primary">Curved grade = 10 × √raw grade</p>
+          <p class="formula-equivalent">
+            Curved grade = 100 × √(raw grade ÷ 100)
+          </p>
+          <p>
+            The formula takes the square root of the raw percentage and multiplies it by 10.
+            Scores below 100 increase, while 100 remains 100.
+          </p>
+          <a class="reference-link" href="#calculator">Try the formula in the calculator</a>
+        </div>
+
+        <div class="formula-methods">
+          <article>
+            <h3>Example: 64%</h3>
+            <ol class="calculation-steps">
+              <li><span>Step 1</span><code>√64 = 8</code></li>
+              <li><span>Step 2</span><code>8 × 10 = 80</code></li>
+            </ol>
+            <dl class="calculation-result">
+              <div>
+                <dt>Result</dt>
+                <dd>64% → 80%</dd>
+              </div>
+              <div>
+                <dt>Boost</dt>
+                <dd>+16 percentage points</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article>
+            <h3>Example: 50%</h3>
+            <p class="calculation-line">√50 × 10 = 70.710...</p>
+            <dl class="calculation-result">
+              <div>
+                <dt>Displayed result</dt>
+                <dd>70.7%</dd>
+              </div>
+            </dl>
+            <p class="reference-note">Results are not always whole numbers.</p>
+          </article>
+
+          <article>
+            <h3>Example: 32 out of 50</h3>
+            <ol class="calculation-steps">
+              <li><span>Convert to a percentage</span><code>32 ÷ 50 = 64%</code></li>
+              <li><span>Apply the curve</span><code>√64 × 10 = 80%</code></li>
+            </ol>
+            <p class="reference-note">
+              Do not apply the square-root formula directly to earned points unless the
+              assessment is scored out of 100.
+            </p>
+            <a class="reference-link" href="#points-calculator">Use the points-based calculator</a>
+          </article>
+
+          <article>
+            <h3>Reverse calculation</h3>
+            <p>To find the raw score needed for a target curved grade:</p>
+            <p class="calculation-line">Raw grade = (Curved grade ÷ 10)²</p>
+            <p class="calculation-line">(80 ÷ 10)² = 64</p>
+            <p class="reference-note">Therefore, 64% raw → 80% curved.</p>
+            <a class="reference-link" href="#reverse-calculator">Use the reverse calculator</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="examples" class="reference-section examples-section" aria-labelledby="examples-title">
+      <header class="reference-heading">
+        <div class="section-kicker">
+          <span aria-hidden="true">07</span>
+          <span>Examples</span>
+        </div>
+        <h2 id="examples-title">Square Root Curve Examples</h2>
+      </header>
+
+      <div class="examples-layout">
+        <div>
+          <table class="examples-table">
+            <caption class="sr-only">Common raw scores and their square-root curved results.</caption>
+            <thead>
+              <tr>
+                <th scope="col">Raw score</th>
+                <th scope="col">Curved score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">25%</th><td>50%</td></tr>
+              <tr><th scope="row">36%</th><td>60%</td></tr>
+              <tr><th scope="row">49%</th><td>70%</td></tr>
+              <tr><th scope="row">50%</th><td>70.7%</td></tr>
+              <tr><th scope="row">64%</th><td>80%</td></tr>
+              <tr><th scope="row">81%</th><td>90%</td></tr>
+              <tr><th scope="row">100%</th><td>100%</td></tr>
+            </tbody>
+          </table>
+          <p class="examples-note">
+            Perfect-square values produce clean whole-number results.{' '}
+            <a class="reference-link" href="#chart">See every score in the complete curve chart</a>.
+          </p>
+        </div>
+
+        <div class="curve-behavior">
+          <section aria-labelledby="lower-scores-title">
+            <h3 id="lower-scores-title">Why Lower Scores Increase More</h3>
+            <p>
+              Square-root growth is steepest at lower raw scores. The increase becomes smaller
+              as scores approach 100, and 100 stays 100.
+            </p>
+          </section>
+          <section aria-labelledby="ranking-title">
+            <h3 id="ranking-title">Ranking Stays in Order</h3>
+            <p>
+              Because the square-root function increases across the valid range, score order is
+              preserved. If Student A starts higher than Student B, Student A remains higher
+              after the curve.
+            </p>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="reference-section faq-section" aria-labelledby="faq-title">
+      <header class="reference-heading">
+        <div class="section-kicker">
+          <span aria-hidden="true">08</span>
+          <span>Questions</span>
+        </div>
+        <h2 id="faq-title">Square Root Curve FAQ</h2>
+      </header>
+
+      <div class="faq-list">
+        <details>
+          <summary>What is a square root curve?</summary>
+          <p>It is a grading transformation that multiplies the square root of a raw percentage by 10.</p>
+        </details>
+        <details>
+          <summary>What is the square root curve formula?</summary>
+          <p class="inline-formula">Curved grade = 10 × √raw grade</p>
+        </details>
+        <details>
+          <summary>What does a 64 become on a square root curve?</summary>
+          <p>64% becomes 80%.</p>
+        </details>
+        <details>
+          <summary>What does a 50 become?</summary>
+          <p>50% becomes approximately 70.7%.</p>
+        </details>
+        <details>
+          <summary>Does a 100 change?</summary>
+          <p>No. 100% → 100%.</p>
+        </details>
+        <details>
+          <summary>Can a square root curve lower a grade?</summary>
+          <p>For valid percentages between 0 and 100, it does not lower the numerical percentage.</p>
+        </details>
+        <details>
+          <summary>How do I calculate the curve for a test not worth 100 points?</summary>
+          <p>First convert earned points to a percentage, then apply the square-root formula.</p>
+        </details>
+        <details>
+          <summary>How do I reverse a square root curve?</summary>
+          <p class="inline-formula">Use Raw grade = (Curved grade ÷ 10)².</p>
+        </details>
+        <details>
+          <summary>Is a square root curve the same as a bell curve?</summary>
+          <p>
+            No. A square-root curve transforms each score mathematically. Bell-curve grading
+            typically depends on the class distribution or relative performance.
+          </p>
+        </details>
+        <details>
+          <summary>Is the square root curve fair?</summary>
+          <p>
+            Whether it is appropriate depends on the instructor, assessment difficulty,
+            grading policy, and educational context.
+          </p>
+        </details>
+      </div>
+    </section>
+  </Container>
+</BaseLayout>
+
+<script>
+  import {
+    calculateBatchCurve,
+    calculateRawFromCurved,
+    calculateSquareRootCurve,
+    calculateSquareRootCurveFromPoints,
+    formatCurveValue,
+    getSquareRootCurveGraphPoint,
+    parseBatchScores,
+    parsePoints,
+    parseRawScore,
+  } from '../lib/squareRootCurve';
+
+  const input = document.querySelector<HTMLInputElement>('#raw-score');
+  const curvedOutput = document.querySelector<HTMLOutputElement>('#curved-score');
+  const boostOutput = document.querySelector<HTMLElement>('#score-boost');
+  const formulaOutput = document.querySelector<HTMLOutputElement>('#formula-output');
+  const errorOutput = document.querySelector<HTMLElement>('#score-error');
+  const resultZone = document.querySelector<HTMLElement>('.result-zone');
+  const chartCells = document.querySelectorAll<HTMLElement>('[data-score]');
+  const printButton = document.querySelector<HTMLButtonElement>('.print-chart');
+  const downloadPdfButton = document.querySelector<HTMLButtonElement>('.download-pdf');
+  const graphCurrent = document.querySelector<SVGGElement>('#graph-current');
+  const graphGuideX = document.querySelector<SVGLineElement>('#graph-guide-x');
+  const graphGuideY = document.querySelector<SVGLineElement>('#graph-guide-y');
+  const graphPoint = document.querySelector<SVGCircleElement>('#graph-current-point');
+  const graphLabel = document.querySelector<SVGTextElement>('#graph-current-label');
+
+  const graphBox = { left: 72, right: 700, top: 34, bottom: 390 };
+  const graphX = (value: number) => graphBox.left + (value / 100) * (graphBox.right - graphBox.left);
+  const graphY = (value: number) => graphBox.bottom - (value / 100) * (graphBox.bottom - graphBox.top);
+
+  if (input && curvedOutput && boostOutput && formulaOutput && errorOutput && resultZone) {
+    let highlightTimer: number | undefined;
+
+    const clearResult = () => {
+      curvedOutput.textContent = '—';
+      boostOutput.textContent = '';
+      formulaOutput.textContent = '—';
+      resultZone.classList.add('is-empty');
+      chartCells.forEach((cell) => cell.classList.remove('is-current'));
+      document.querySelectorAll('.current-label').forEach((label) => {
+        label.textContent = '';
+      });
+      graphCurrent?.setAttribute('hidden', '');
+    };
+
+    const updateGraphPoint = (raw: number) => {
+      if (!graphCurrent || !graphGuideX || !graphGuideY || !graphPoint || !graphLabel) return;
+
+      const point = getSquareRootCurveGraphPoint(raw);
+      const x = graphX(point.x);
+      const y = graphY(point.y);
+      const labelOnLeft = point.x > 74;
+      const labelBelow = point.y > 88;
+
+      graphGuideX.setAttribute('x1', String(x));
+      graphGuideX.setAttribute('x2', String(x));
+      graphGuideX.setAttribute('y1', String(y));
+      graphGuideY.setAttribute('x2', String(x));
+      graphGuideY.setAttribute('y1', String(y));
+      graphGuideY.setAttribute('y2', String(y));
+      graphPoint.setAttribute('cx', String(x));
+      graphPoint.setAttribute('cy', String(y));
+      graphLabel.setAttribute('x', String(x + (labelOnLeft ? -13 : 13)));
+      graphLabel.setAttribute('y', String(y + (labelBelow ? 25 : -13)));
+      graphLabel.setAttribute('text-anchor', labelOnLeft ? 'end' : 'start');
+      graphLabel.textContent = `${formatCurveValue(point.x)} → ${formatCurveValue(point.y)}`;
+      graphCurrent.removeAttribute('hidden');
+    };
+
+    const updateChartHighlight = (raw: number) => {
+      const highlightedScore = Number.isInteger(raw) ? String(raw) : null;
+
+      chartCells.forEach((cell) => {
+        const isCurrent = highlightedScore !== null && cell.dataset.score === highlightedScore;
+        cell.classList.toggle('is-current', isCurrent);
+        const label = cell.querySelector<HTMLElement>('.current-label');
+        if (label) label.textContent = isCurrent ? 'Current calculator score: ' : '';
+      });
+    };
+
+    const updateResult = () => {
+      const parsed = parseRawScore(input.value);
+
+      if (!parsed.valid) {
+        clearResult();
+        const hasError = parsed.reason !== 'empty';
+        errorOutput.textContent = hasError ? 'Enter a score between 0 and 100.' : '';
+        input.setAttribute('aria-invalid', String(hasError));
+        return;
+      }
+
+      const result = calculateSquareRootCurve(parsed.value);
+      const raw = formatCurveValue(result.raw);
+      const curved = formatCurveValue(result.curved);
+      const boost = formatCurveValue(result.boost);
+      const boostPrefix = result.boost > 0 ? '+' : '';
+
+      input.setAttribute('aria-invalid', 'false');
+      errorOutput.textContent = '';
+      curvedOutput.innerHTML = `${curved}<span>%</span>`;
+      boostOutput.textContent = `${boostPrefix}${boost} percentage points`;
+      formulaOutput.textContent = `√${raw} × 10 = ${curved}`;
+      updateChartHighlight(result.raw);
+      updateGraphPoint(result.raw);
+      resultZone.classList.remove('is-empty', 'is-updated');
+      void resultZone.offsetWidth;
+      resultZone.classList.add('is-updated');
+      window.clearTimeout(highlightTimer);
+      highlightTimer = window.setTimeout(() => resultZone.classList.remove('is-updated'), 240);
+    };
+
+    input.addEventListener('input', updateResult);
+  }
+
+  printButton?.addEventListener('click', () => window.print());
+  downloadPdfButton?.addEventListener('click', () => window.print());
+
+  const reverseInput = document.querySelector<HTMLInputElement>('#target-curved-score');
+  const reverseResult = document.querySelector<HTMLOutputElement>('#required-raw-score');
+  const reverseRelationship = document.querySelector<HTMLElement>('#reverse-relationship');
+  const reverseSummary = document.querySelector<HTMLElement>('#reverse-summary');
+  const reverseFormula = document.querySelector<HTMLOutputElement>('#reverse-formula');
+  const reverseError = document.querySelector<HTMLElement>('#reverse-error');
+
+  if (
+    reverseInput &&
+    reverseResult &&
+    reverseRelationship &&
+    reverseSummary &&
+    reverseFormula &&
+    reverseError
+  ) {
+    const clearReverseResult = () => {
+      reverseResult.textContent = '—';
+      reverseRelationship.textContent = '';
+      reverseSummary.textContent = '';
+      reverseFormula.textContent = '—';
+    };
+
+    const updateReverseResult = () => {
+      const parsed = parseRawScore(reverseInput.value);
+
+      if (!parsed.valid) {
+        clearReverseResult();
+        const hasError = parsed.reason !== 'empty';
+        reverseError.textContent = hasError ? 'Enter a target score between 0 and 100.' : '';
+        reverseInput.setAttribute('aria-invalid', String(hasError));
+        return;
+      }
+
+      const result = calculateRawFromCurved(parsed.value);
+      const curved = formatCurveValue(result.curved);
+      const raw = formatCurveValue(result.raw);
+
+      reverseInput.setAttribute('aria-invalid', 'false');
+      reverseError.textContent = '';
+      reverseResult.textContent = `${raw}%`;
+      reverseRelationship.textContent = `${curved}% curved → ${raw}% raw`;
+      reverseSummary.textContent = `A raw score of ${raw}% curves to ${curved}%.`;
+      reverseFormula.textContent = `(${curved} ÷ 10)² = ${raw}`;
+    };
+
+    reverseInput.addEventListener('input', updateReverseResult);
+  }
+
+  const earnedInput = document.querySelector<HTMLInputElement>('#points-earned');
+  const possibleInput = document.querySelector<HTMLInputElement>('#points-possible');
+  const pointsCurvedResult = document.querySelector<HTMLOutputElement>('#points-curved-score');
+  const pointsRawResult = document.querySelector<HTMLElement>('#points-raw-score');
+  const pointsBoostResult = document.querySelector<HTMLElement>('#points-boost');
+  const pointsNormalizedFormula = document.querySelector<HTMLOutputElement>('#points-normalized-formula');
+  const pointsCurveFormula = document.querySelector<HTMLOutputElement>('#points-curve-formula');
+  const pointsError = document.querySelector<HTMLElement>('#points-error');
+
+  if (
+    earnedInput &&
+    possibleInput &&
+    pointsCurvedResult &&
+    pointsRawResult &&
+    pointsBoostResult &&
+    pointsNormalizedFormula &&
+    pointsCurveFormula &&
+    pointsError
+  ) {
+    const clearPointsResult = () => {
+      pointsCurvedResult.textContent = '—';
+      pointsRawResult.textContent = '—';
+      pointsBoostResult.textContent = '—';
+      pointsNormalizedFormula.textContent = '—';
+      pointsCurveFormula.textContent = '—';
+    };
+
+    const updatePointsResult = () => {
+      const parsed = parsePoints(earnedInput.value, possibleInput.value);
+
+      if (!parsed.valid) {
+        clearPointsResult();
+        const messages = {
+          empty: '',
+          malformed: 'Enter valid point values.',
+          'earned-negative': 'Points earned must be 0 or greater.',
+          'possible-nonpositive': 'Points possible must be greater than 0.',
+          'earned-exceeds': 'Points earned cannot exceed points possible.',
+        };
+        const hasError = parsed.reason !== 'empty';
+        pointsError.textContent = messages[parsed.reason];
+        earnedInput.setAttribute(
+          'aria-invalid',
+          String(hasError && parsed.reason !== 'possible-nonpositive'),
+        );
+        possibleInput.setAttribute(
+          'aria-invalid',
+          String(hasError && parsed.reason !== 'earned-negative' && parsed.reason !== 'earned-exceeds'),
+        );
+        return;
+      }
+
+      const result = calculateSquareRootCurveFromPoints(parsed.earned, parsed.possible);
+      const earned = formatCurveValue(result.earned);
+      const possible = formatCurveValue(result.possible);
+      const raw = formatCurveValue(result.raw);
+      const curved = formatCurveValue(result.curved);
+      const boost = formatCurveValue(result.boost);
+      const boostPrefix = result.boost > 0 ? '+' : '';
+
+      earnedInput.setAttribute('aria-invalid', 'false');
+      possibleInput.setAttribute('aria-invalid', 'false');
+      pointsError.textContent = '';
+      pointsCurvedResult.textContent = `${curved}%`;
+      pointsRawResult.textContent = `${raw}%`;
+      pointsBoostResult.textContent = `${boostPrefix}${boost} percentage points`;
+      pointsNormalizedFormula.textContent = `${earned} ÷ ${possible} = ${raw}%`;
+      pointsCurveFormula.textContent = `√${raw} × 10 = ${curved}`;
+    };
+
+    earnedInput.addEventListener('input', updatePointsResult);
+    possibleInput.addEventListener('input', updatePointsResult);
+  }
+
+  const classInput = document.querySelector<HTMLTextAreaElement>('#class-raw-scores');
+  const classErrors = document.querySelector<HTMLElement>('#class-errors');
+  const classEmpty = document.querySelector<HTMLElement>('#class-empty');
+  const classOutput = document.querySelector<HTMLElement>('#class-output');
+  const classCount = document.querySelector<HTMLElement>('#class-count');
+  const classRawAverage = document.querySelector<HTMLElement>('#class-raw-average');
+  const classCurvedAverage = document.querySelector<HTMLElement>('#class-curved-average');
+  const classAverageBoost = document.querySelector<HTMLElement>('#class-average-boost');
+  const classResultsBody = document.querySelector<HTMLTableSectionElement>('#class-results-body');
+  const copyResultsButton = document.querySelector<HTMLButtonElement>('.copy-results');
+  const clearClassButton = document.querySelector<HTMLButtonElement>('.clear-class');
+  const classCopyStatus = document.querySelector<HTMLElement>('#class-copy-status');
+
+  if (
+    classInput &&
+    classErrors &&
+    classEmpty &&
+    classOutput &&
+    classCount &&
+    classRawAverage &&
+    classCurvedAverage &&
+    classAverageBoost &&
+    classResultsBody &&
+    copyResultsButton &&
+    clearClassButton &&
+    classCopyStatus
+  ) {
+    let currentResults: ReturnType<typeof calculateBatchCurve>['results'] = [];
+
+    const formatBatchErrors = (errors: ReturnType<typeof parseBatchScores>['errors']) => {
+      if (errors.length === 0) return '';
+
+      const uniqueErrors = Array.from(
+        new Map(errors.map((error) => [`${error.reason}:${error.token}`, error])).values(),
+      );
+      const shown = uniqueErrors.slice(0, 5).map((error) => {
+        const reason = error.reason === 'malformed' ? 'not a number' : 'outside 0–100';
+        return `"${error.token}" (${reason})`;
+      });
+      const remaining = uniqueErrors.length - shown.length;
+      const suffix = remaining > 0 ? `; ${remaining} more` : '';
+      const noun = errors.length === 1 ? 'value needs' : 'values need';
+
+      return `${errors.length} ${noun} attention: ${shown.join(', ')}${suffix}`;
+    };
+
+    const updateBatchResults = () => {
+      const parsed = parseBatchScores(classInput.value);
+      const batch = calculateBatchCurve(parsed.scores);
+      currentResults = batch.results;
+      classErrors.textContent = formatBatchErrors(parsed.errors);
+      classInput.setAttribute('aria-invalid', String(parsed.errors.length > 0));
+      classCopyStatus.textContent = '';
+
+      if (batch.summary.count === 0) {
+        classEmpty.hidden = false;
+        classOutput.hidden = true;
+        copyResultsButton.disabled = true;
+        classResultsBody.replaceChildren();
+        return;
+      }
+
+      classEmpty.hidden = true;
+      classOutput.hidden = false;
+      copyResultsButton.disabled = false;
+      classCount.textContent = `${batch.summary.count} ${batch.summary.count === 1 ? 'score' : 'scores'}`;
+      classRawAverage.textContent = `${formatCurveValue(batch.summary.rawAverage)}%`;
+      classCurvedAverage.textContent = `${formatCurveValue(batch.summary.curvedAverage)}%`;
+      const averageBoost = formatCurveValue(batch.summary.averageBoost);
+      classAverageBoost.textContent = `${batch.summary.averageBoost > 0 ? '+' : ''}${averageBoost} points`;
+
+      const rows = document.createDocumentFragment();
+      batch.results.forEach((result, index) => {
+        const row = document.createElement('tr');
+        const position = document.createElement('th');
+        position.scope = 'row';
+        position.textContent = String(index + 1);
+
+        const raw = document.createElement('td');
+        raw.textContent = formatCurveValue(result.raw);
+        const curved = document.createElement('td');
+        curved.textContent = formatCurveValue(result.curved);
+        const boost = document.createElement('td');
+        const formattedBoost = formatCurveValue(result.boost);
+        boost.textContent = `${result.boost > 0 ? '+' : ''}${formattedBoost}`;
+
+        row.append(position, raw, curved, boost);
+        rows.append(row);
+      });
+      classResultsBody.replaceChildren(rows);
+    };
+
+    const copyBatchResults = async () => {
+      if (currentResults.length === 0) return;
+
+      const rows = currentResults.map((result) => [
+        formatCurveValue(result.raw),
+        formatCurveValue(result.curved),
+        formatCurveValue(result.boost),
+      ]);
+      const clipboardText = [
+        ['Raw Score', 'Curved Score', 'Boost'],
+        ...rows,
+      ].map((row) => row.join('\t')).join('\n');
+
+      try {
+        await navigator.clipboard.writeText(clipboardText);
+        classCopyStatus.textContent = 'Results copied to clipboard.';
+      } catch {
+        classCopyStatus.textContent = 'Unable to copy results. Please try again.';
+      }
+    };
+
+    classInput.addEventListener('input', updateBatchResults);
+    copyResultsButton.addEventListener('click', copyBatchResults);
+    clearClassButton.addEventListener('click', () => {
+      classInput.value = '';
+      updateBatchResults();
+      classCopyStatus.textContent = 'Scores cleared.';
+      classInput.focus();
+    });
+  }
+</script>
