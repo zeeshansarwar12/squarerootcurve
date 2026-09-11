@@ -61,6 +61,16 @@ const graphPath = generateSquareRootCurveGraphPoints()
               />
               <span class="unit" aria-hidden="true">%</span>
             </div>
+            <input
+              class="number-range"
+              type="range"
+              min="0"
+              max="100"
+              step="0.1"
+              value="64"
+              data-input-id="raw-score"
+              aria-label="Adjust raw score"
+            />
             <p id="score-error" class="input-error" aria-live="polite"></p>
           </div>
 
@@ -343,6 +353,16 @@ const graphPath = generateSquareRootCurveGraphPoints()
                 />
                 <span aria-hidden="true">%</span>
               </div>
+              <input
+                class="number-range"
+                type="range"
+                min="0"
+                max="100"
+                step="0.1"
+                value="80"
+                data-input-id="target-curved-score"
+                aria-label="Adjust target curved score"
+              />
               <p id="reverse-error" class="supporting-error" aria-live="polite"></p>
             </div>
 
@@ -382,6 +402,17 @@ const graphPath = generateSquareRootCurveGraphPoints()
                     aria-invalid="false"
                   />
                 </div>
+                <input
+                  class="number-range"
+                  type="range"
+                  min="0"
+                  max="50"
+                  step="0.1"
+                  value="32"
+                  data-input-id="points-earned"
+                  data-max-input-id="points-possible"
+                  aria-label="Adjust points earned"
+                />
               </div>
               <span class="points-separator" aria-hidden="true">out of</span>
               <div class="supporting-input-group">
@@ -400,6 +431,17 @@ const graphPath = generateSquareRootCurveGraphPoints()
                     aria-invalid="false"
                   />
                 </div>
+                <input
+                  class="number-range"
+                  type="range"
+                  min="1"
+                  max="200"
+                  step="0.1"
+                  value="50"
+                  data-input-id="points-possible"
+                  data-expand-max="true"
+                  aria-label="Adjust points possible"
+                />
               </div>
             </div>
             <p id="points-error" class="supporting-error" aria-live="polite"></p>
@@ -832,6 +874,41 @@ const graphPath = generateSquareRootCurveGraphPoints()
   downloadPdfButton?.addEventListener('click', () => window.print());
   document.querySelectorAll<HTMLFormElement>('form').forEach((form) => {
     form.addEventListener('submit', (event) => event.preventDefault());
+  });
+  document.querySelectorAll<HTMLInputElement>('.number-range[data-input-id]').forEach((range) => {
+    const inputId = range.dataset.inputId;
+    const linkedInput = inputId ? document.querySelector<HTMLInputElement>(`#${inputId}`) : null;
+    const maxInputId = range.dataset.maxInputId;
+    const maxInput = maxInputId
+      ? document.querySelector<HTMLInputElement>(`#${maxInputId}`)
+      : null;
+
+    if (!linkedInput) return;
+
+    const syncRangeFromInput = () => {
+      const value = Number(linkedInput.value);
+      const linkedMaximum = maxInput ? Number(maxInput.value) : Number.NaN;
+
+      if (Number.isFinite(linkedMaximum) && linkedMaximum > Number(range.min)) {
+        range.max = String(linkedMaximum);
+      }
+
+      if (range.dataset.expandMax === 'true' && Number.isFinite(value) && value > Number(range.max)) {
+        range.max = String(value);
+      }
+
+      if (Number.isFinite(value)) {
+        range.value = String(Math.min(Math.max(value, Number(range.min)), Number(range.max)));
+      }
+    };
+
+    range.addEventListener('input', () => {
+      linkedInput.value = range.value;
+      linkedInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    linkedInput.addEventListener('input', syncRangeFromInput);
+    maxInput?.addEventListener('input', syncRangeFromInput);
+    syncRangeFromInput();
   });
 
   const reverseInput = document.querySelector<HTMLInputElement>('#target-curved-score');

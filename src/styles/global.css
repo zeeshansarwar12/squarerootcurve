@@ -262,6 +262,66 @@
     outline-offset: 4px;
   }
 
+  .number-range {
+    width: 100%;
+    height: 2.75rem;
+    margin-top: var(--space-1);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--academic-blue);
+    cursor: pointer;
+    accent-color: var(--academic-blue);
+    appearance: none;
+  }
+
+  .input-zone .number-range {
+    max-width: 21rem;
+  }
+
+  .number-range::-webkit-slider-runnable-track {
+    height: 2px;
+    background: var(--rule);
+  }
+
+  .number-range::-webkit-slider-thumb {
+    width: 1rem;
+    height: 1rem;
+    margin-top: -0.4375rem;
+    border: 2px solid var(--academic-blue);
+    border-radius: 50%;
+    background: var(--surface);
+    appearance: none;
+  }
+
+  .number-range::-moz-range-track {
+    height: 2px;
+    border: 0;
+    background: var(--rule);
+  }
+
+  .number-range::-moz-range-progress {
+    height: 2px;
+    background: var(--academic-blue);
+  }
+
+  .number-range::-moz-range-thumb {
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 2px solid var(--academic-blue);
+    border-radius: 50%;
+    background: var(--surface);
+  }
+
+  .number-range:hover::-webkit-slider-thumb,
+  .number-range:focus-visible::-webkit-slider-thumb {
+    background: var(--academic-blue);
+  }
+
+  .number-range:hover::-moz-range-thumb,
+  .number-range:focus-visible::-moz-range-thumb {
+    background: var(--academic-blue);
+  }
   #raw-score {
     width: 100%;
     min-width: 0;
@@ -1237,7 +1297,7 @@
   }
 
   .formula-sheet {
-    border-block: var(--border-width) solid var(--ink);
+    border-bottom: var(--border-width) solid var(--ink);
   }
 
   .formula-display {
@@ -1389,7 +1449,7 @@
   .examples-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.82fr);
-    border-block: var(--border-width) solid var(--ink);
+    border-bottom: var(--border-width) solid var(--ink);
   }
 
   .examples-layout > div {
@@ -1458,10 +1518,6 @@
     margin-top: var(--space-3);
     color: var(--ink-muted);
     line-height: 1.65;
-  }
-
-  .faq-list {
-    border-top: var(--border-width) solid var(--ink);
   }
 
   .faq-list details {
@@ -1533,7 +1589,19 @@
     }
 
     .opening {
-      padding-top: clamp(2.5rem, 12vw, 4rem);
+      padding-top: var(--space-4);
+    }
+
+    .opening .eyebrow {
+      margin-bottom: var(--space-2);
+    }
+
+    .opening .lede {
+      margin-top: var(--space-3);
+    }
+
+    .workbench {
+      margin-top: var(--space-4);
     }
 
     .calculation-grid {
@@ -1552,12 +1620,11 @@
     }
 
     .direction-line {
-      width: 1px;
-      height: 2.25rem;
+      display: none;
     }
 
     .direction-arrow {
-      margin: 1.1rem 0 0 -0.55rem;
+      margin: 0;
       transform: rotate(90deg);
     }
 
@@ -1702,12 +1769,28 @@
     }
 
     .masthead {
-      display: block;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+      padding-block: var(--space-2);
+    }
+
+    .site-name {
+      min-height: 2.5rem;
+      font-size: 1.125rem;
+    }
+
+    .masthead nav {
+      border-top: var(--border-width) solid var(--rule);
     }
 
     .nav-list {
-      margin-top: var(--space-3);
+      margin-top: 0;
       justify-content: space-between;
+    }
+
+    .nav-list a {
+      min-height: 2.5rem;
     }
 
     .points-inputs,
