@@ -155,11 +155,13 @@
   }
 
   .opening {
-    padding-block: clamp(2.75rem, 6vw, 5rem) var(--space-6);
+    padding-block: clamp(2.75rem, 3vw, 5rem) var(--space-6);
   }
 
   .opening-copy {
-    max-width: 55rem;
+    max-width: 44rem;
+    margin-inline: auto;
+    text-align: center;
   }
 
   .eyebrow {
@@ -173,17 +175,17 @@
   }
 
   h1 {
-    max-width: 15ch;
+    max-width: none;
     font-family: var(--font-editorial);
-    font-size: clamp(2.75rem, 6vw, 5.5rem);
+    font-size: clamp(2.5rem, 2.5vw, 3.25rem);
     font-weight: 600;
     letter-spacing: -0.035em;
-    line-height: 0.98;
+    line-height: 1.05;
   }
 
   .lede {
     max-width: 39rem;
-    margin-top: var(--space-4);
+    margin: var(--space-4) auto 0;
     color: var(--ink-muted);
     font-family: var(--font-editorial);
     font-size: var(--text-lede);
@@ -434,7 +436,7 @@
 
   .chart-title-group h2 {
     font-family: var(--font-editorial);
-    font-size: clamp(2.25rem, 4.5vw, 4rem);
+    font-size: clamp(2.25rem, 4.5vw, 2rem);
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1;
@@ -582,7 +584,7 @@
   }
 
   .visualize-section {
-    padding-block: 0 clamp(4rem, 8vw, 7rem);
+    padding-block: clamp(4rem, 8vw, 7rem) 0;
   }
 
   .visualize-heading {
@@ -593,7 +595,7 @@
 
   .visualize-heading h2 {
     font-family: var(--font-editorial);
-    font-size: clamp(2.25rem, 4.5vw, 4rem);
+    font-size: clamp(2.25rem, 4.5vw, 2rem);
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1.02;
@@ -723,7 +725,7 @@
 
   .more-calculators-heading h2 {
     font-family: var(--font-editorial);
-    font-size: clamp(2.25rem, 4.5vw, 4rem);
+    font-size: clamp(2.25rem, 4.5vw, 2rem);
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1.02;
@@ -974,7 +976,7 @@
 
   .class-calculator-heading h2 {
     font-family: var(--font-editorial);
-    font-size: clamp(2.25rem, 4.5vw, 4rem);
+    font-size: clamp(2.25rem, 4.5vw, 2rem);
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1.02;
@@ -1222,7 +1224,7 @@
 
   .reference-heading h2 {
     font-family: var(--font-editorial);
-    font-size: clamp(2.25rem, 4.5vw, 4rem);
+    font-size: clamp(2.25rem, 4.5vw, 2rem);
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1.02;
@@ -1593,7 +1595,7 @@
     }
 
     .visualize-heading h2 {
-      font-size: clamp(2rem, 11vw, 3rem);
+      font-size: clamp(2.25rem, 4.5vw, 2rem);
     }
 
     .curve-figure {
