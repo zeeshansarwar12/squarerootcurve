@@ -20,11 +20,143 @@ const graphY = (value: number) => graphBox.bottom - (value / 100) * (graphBox.bo
 const graphPath = generateSquareRootCurveGraphPoints()
   .map((point, index) => `${index === 0 ? 'M' : 'L'} ${graphX(point.x).toFixed(2)} ${graphY(point.y).toFixed(2)}`)
   .join(' ');
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': 'https://squarerootcurve.com/#website',
+      url: 'https://squarerootcurve.com/',
+      name: 'SquareRootCurve.com',
+      description: 'A square-root curve calculator, chart, graph, and grading reference.',
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'WebPage',
+      '@id': 'https://squarerootcurve.com/#webpage',
+      url: 'https://squarerootcurve.com/',
+      name: 'Square Root Curve Calculator & Chart',
+      description:
+        'Calculate square-root curved grades instantly, view the complete 0–100 chart, print or save it, and learn the formula with worked examples.',
+      isPartOf: { '@id': 'https://squarerootcurve.com/#website' },
+      mainEntity: { '@id': 'https://squarerootcurve.com/#calculator' },
+      hasPart: { '@id': 'https://squarerootcurve.com/#faq' },
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'WebApplication',
+      '@id': 'https://squarerootcurve.com/#calculator',
+      url: 'https://squarerootcurve.com/#calculator',
+      name: 'Square Root Curve Calculator',
+      description:
+        'Calculate square-root curved grades from percentages or points, reverse a target curved grade, and curve multiple class scores.',
+      applicationCategory: 'EducationalApplication',
+      operatingSystem: 'Any',
+      browserRequirements: 'Requires JavaScript and an HTML5-compatible browser.',
+      isAccessibleForFree: true,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+      },
+      featureList: [
+        'Square-root grade calculator',
+        'Complete 0–100 square-root curve chart',
+        'Interactive square-root curve graph',
+        'Reverse grade calculator',
+        'Points-based calculator',
+        'Batch class calculator',
+        'Printable and PDF-ready chart',
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://squarerootcurve.com/#faq',
+      url: 'https://squarerootcurve.com/#faq',
+      name: 'Square Root Curve FAQ',
+      isPartOf: { '@id': 'https://squarerootcurve.com/#webpage' },
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'What is a square root curve?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'It is a grading transformation that multiplies the square root of a raw percentage by 10.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is the square root curve formula?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Curved grade = 10 × √raw grade',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What does a 64 become on a square root curve?',
+          acceptedAnswer: { '@type': 'Answer', text: '64% becomes 80%.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'What does a 50 become?',
+          acceptedAnswer: { '@type': 'Answer', text: '50% becomes approximately 70.7%.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'Does a 100 change?',
+          acceptedAnswer: { '@type': 'Answer', text: 'No. 100% → 100%.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can a square root curve lower a grade?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'For valid percentages between 0 and 100, it does not lower the numerical percentage.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I calculate the curve for a test not worth 100 points?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'First convert earned points to a percentage, then apply the square-root formula.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I reverse a square root curve?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Use Raw grade = (Curved grade ÷ 10)².',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Is a square root curve the same as a bell curve?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'No. A square-root curve transforms each score mathematically. Bell-curve grading typically depends on the class distribution or relative performance.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Is the square root curve fair?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Whether it is appropriate depends on the instructor, assessment difficulty, grading policy, and educational context.',
+          },
+        },
+      ],
+    },
+  ],
+};
 ---
 
 <BaseLayout
   title="Square Root Curve Calculator & Chart | SquareRootCurve.com"
   description="Calculate square-root curved grades instantly, view the complete 0–100 chart, print or save it, and learn the formula with worked examples."
+  structuredData={structuredData}
 >
   <Container class="opening">
     <div class="opening-copy">
