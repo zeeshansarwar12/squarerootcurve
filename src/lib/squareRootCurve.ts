@@ -8,6 +8,12 @@ export interface CurveResult {
   boost: number;
 }
 
+export interface GradeAdjustmentResult {
+  raw: number;
+  adjusted: number;
+  change: number;
+}
+
 export interface CurveChartEntry {
   raw: number;
   curved: number;
@@ -87,6 +93,49 @@ export function calculateSquareRootCurve(raw: number): CurveResult {
     curved,
     boost: curved - raw,
   };
+}
+
+function assertValidPercentage(value: number, label: string): void {
+  if (!Number.isFinite(value) || value < 0 || value > 100) {
+    throw new RangeError(`${label} must be between 0 and 100.`);
+  }
+}
+
+export function calculateFlatPoints(raw: number, points: number): GradeAdjustmentResult {
+  assertValidPercentage(raw, 'Raw score');
+
+  if (!Number.isFinite(points) || points < 0) {
+    throw new RangeError('Points to add must be zero or greater.');
+  }
+
+  const adjusted = Math.min(100, raw + points);
+  return { raw, adjusted, change: adjusted - raw };
+}
+
+export function calculateScaleToHighest(raw: number, highest: number): GradeAdjustmentResult {
+  assertValidPercentage(raw, 'Raw score');
+
+  if (!Number.isFinite(highest) || highest <= 0 || highest > 100) {
+    throw new RangeError('Highest score must be greater than 0 and no more than 100.');
+  }
+
+  if (raw > highest) {
+    throw new RangeError('Raw score cannot exceed the highest score for proportional scaling.');
+  }
+
+  const adjusted = raw * (100 / highest);
+  return { raw, adjusted, change: adjusted - raw };
+}
+
+export function calculateAddTopScoreGap(raw: number, highest: number): GradeAdjustmentResult {
+  assertValidPercentage(raw, 'Raw score');
+
+  if (!Number.isFinite(highest) || highest <= 0 || highest > 100) {
+    throw new RangeError('Highest score must be greater than 0 and no more than 100.');
+  }
+
+  const adjusted = Math.min(100, raw + (100 - highest));
+  return { raw, adjusted, change: adjusted - raw };
 }
 
 export function parseBatchScores(value: string): ParsedBatchScores {

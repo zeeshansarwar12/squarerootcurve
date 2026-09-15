@@ -222,19 +222,28 @@
   }
 
   .calculator {
+    min-width: 0;
+    border-right: var(--border-width) solid var(--rule);
     background: color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+
+  .instrument-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 54fr) minmax(0, 46fr);
+    align-items: stretch;
+    background: color-mix(in srgb, var(--surface) 35%, transparent);
   }
 
   .calculation-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(5rem, 11vw, 8rem) minmax(0, 1.1fr);
+    grid-template-columns: minmax(0, 1fr) clamp(3rem, 4vw, 4rem) minmax(0, 1.1fr);
     align-items: center;
-    min-height: clamp(15rem, 29vw, 21rem);
+    min-height: clamp(15rem, 24vw, 19rem);
   }
 
   .score-zone {
     min-width: 0;
-    padding: clamp(1.5rem, 4vw, 3rem);
+    padding: clamp(1.25rem, 2.5vw, 2rem);
   }
 
   .score-zone label,
@@ -377,16 +386,20 @@
   }
 
   .direction-line {
-    width: 100%;
+    flex: 1;
     height: 1px;
     background: currentColor;
   }
 
   .direction-arrow {
-    margin-left: -0.15em;
-    font-family: var(--font-mono);
-    font-size: 1.75rem;
-    line-height: 1;
+    width: 0.55rem;
+    height: 0.55rem;
+    flex: 0 0 auto;
+    margin-left: -0.55rem;
+    border-top: 1px solid currentColor;
+    border-right: 1px solid currentColor;
+    font-size: 0;
+    transform: rotate(45deg);
   }
 
   .result-zone {
@@ -397,7 +410,7 @@
     display: block;
     color: var(--ink);
     font-family: var(--font-mono);
-    font-size: clamp(4.5rem, 10vw, 8.5rem);
+    font-size: clamp(4rem, 6vw, 5.5rem);
     font-weight: 500;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.085em;
@@ -411,6 +424,10 @@
     font-size: 0.42em;
     letter-spacing: -0.02em;
     vertical-align: 0.15em;
+  }
+
+  .result-value span {
+    margin-left: 0.12em;
   }
 
   .score-boost {
@@ -429,10 +446,10 @@
   .formula-row {
     min-height: 5.75rem;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.75fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
-    gap: var(--space-6);
-    padding: var(--space-3) clamp(1.5rem, 4vw, 3rem);
+    gap: var(--space-2);
+    padding: var(--space-3) clamp(1.25rem, 2.5vw, 2rem);
     border-top: var(--border-width) solid var(--rule);
   }
 
@@ -643,32 +660,16 @@
     display: none;
   }
 
-  .visualize-section {
-    padding-block: clamp(4rem, 8vw, 7rem) 0;
-  }
-
-  .visualize-heading {
-    max-width: 50rem;
-    padding-bottom: var(--space-5);
-    border-bottom: var(--border-width) solid var(--ink);
-  }
-
-  .visualize-heading h2 {
-    font-family: var(--font-editorial);
-    font-size: clamp(2.25rem, 4.5vw, 2rem);
-    font-weight: 600;
-    letter-spacing: -0.025em;
-    line-height: 1.02;
-  }
-
-  .visualize-heading > p {
-    max-width: 42rem;
-    margin-top: var(--space-3);
-    color: var(--ink-muted);
+  .visualize-panel {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: clamp(1.25rem, 2.5vw, 2rem);
   }
 
   .curve-figure {
-    margin: var(--space-5) 0 0;
+    width: 100%;
+    margin: 0;
   }
 
   .curve-graph {
@@ -1340,6 +1341,11 @@
     text-underline-offset: 0.18em;
   }
 
+  .grade-curve-link {
+    display: inline-block;
+    margin-top: var(--space-3);
+  }
+
   .formula-display > .reference-link,
   .formula-methods .reference-link {
     display: inline-block;
@@ -1625,7 +1631,7 @@
 
     .direction-arrow {
       margin: 0;
-      transform: rotate(90deg);
+      transform: rotate(135deg);
     }
 
     .result-zone {
@@ -1661,12 +1667,8 @@
       text-align: left;
     }
 
-    .visualize-heading h2 {
-      font-size: clamp(2.25rem, 4.5vw, 2rem);
-    }
-
     .curve-figure {
-      margin-top: var(--space-4);
+      margin-top: 0;
     }
 
     .graph-ticks,
@@ -1689,6 +1691,18 @@
   }
 
   @media (max-width: 56rem) {
+    .instrument-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .calculator {
+      border-right: 0;
+    }
+
+    .visualize-panel {
+      border-top: var(--border-width) solid var(--rule);
+    }
+
     .calculator-spread {
       grid-template-columns: minmax(0, 1fr);
     }

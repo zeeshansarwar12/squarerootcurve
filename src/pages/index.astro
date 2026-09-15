@@ -28,7 +28,7 @@ const structuredData = {
       '@id': 'https://squarerootcurve.com/#website',
       url: 'https://squarerootcurve.com/',
       name: 'SquareRootCurve.com',
-      description: 'A square-root curve calculator, chart, graph, and grading reference.',
+      description: 'A square root curve calculator, chart, graph, and grading reference.',
       inLanguage: 'en',
     },
     {
@@ -37,7 +37,7 @@ const structuredData = {
       url: 'https://squarerootcurve.com/',
       name: 'Square Root Curve Calculator & Chart',
       description:
-        'Calculate square-root curved grades instantly, view the complete 0–100 chart, print or save it, and learn the formula with worked examples.',
+        'Calculate square root curved grades instantly, view the complete 0–100 chart, print or save it, and learn the formula with worked examples.',
       isPartOf: { '@id': 'https://squarerootcurve.com/#website' },
       mainEntity: { '@id': 'https://squarerootcurve.com/#calculator' },
       hasPart: { '@id': 'https://squarerootcurve.com/#faq' },
@@ -49,7 +49,7 @@ const structuredData = {
       url: 'https://squarerootcurve.com/#calculator',
       name: 'Square Root Curve Calculator',
       description:
-        'Calculate square-root curved grades from percentages or points, reverse a target curved grade, and curve multiple class scores.',
+        'Calculate square root curved grades from percentages or points, reverse a target curved grade, and curve multiple class scores.',
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'Any',
       browserRequirements: 'Requires JavaScript and an HTML5-compatible browser.',
@@ -60,9 +60,9 @@ const structuredData = {
         priceCurrency: 'USD',
       },
       featureList: [
-        'Square-root grade calculator',
-        'Complete 0–100 square-root curve chart',
-        'Interactive square-root curve graph',
+        'Square root grade calculator',
+        'Complete 0–100 square root curve chart',
+        'Interactive square root curve graph',
         'Reverse grade calculator',
         'Points-based calculator',
         'Batch class calculator',
@@ -120,7 +120,7 @@ const structuredData = {
           name: 'How do I calculate the curve for a test not worth 100 points?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'First convert earned points to a percentage, then apply the square-root formula.',
+            text: 'First convert earned points to a percentage, then apply the square root formula.',
           },
         },
         {
@@ -136,7 +136,7 @@ const structuredData = {
           name: 'Is a square root curve the same as a bell curve?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'No. A square-root curve transforms each score mathematically. Bell-curve grading typically depends on the class distribution or relative performance.',
+            text: 'No. A square root curve transforms each score mathematically. Bell-curve grading typically depends on the class distribution or relative performance.',
           },
         },
         {
@@ -155,7 +155,7 @@ const structuredData = {
 
 <BaseLayout
   title="Square Root Curve Calculator & Chart | SquareRootCurve.com"
-  description="Calculate square-root curved grades instantly, view the complete 0–100 chart, print or save it, and learn the formula with worked examples."
+  description="Calculate square root curved grades instantly, view the complete 0–100 chart, print or save it, and learn the formula with worked examples."
   structuredData={structuredData}
 >
   <Container class="opening">
@@ -163,164 +163,156 @@ const structuredData = {
       <p class="eyebrow">Grading reference</p>
       <h1>Square Root Curve Calculator</h1>
       <p class="lede">
-        Enter a raw grade to see its square-root curved score instantly.
+        Enter a raw grade to see its square root curved score instantly.
       </p>
     </div>
 
     <section id="calculator" class="workbench" aria-labelledby="workbench-title">
       <header class="workbench-heading">
         <span aria-hidden="true">01</span>
-        <h2 id="workbench-title">Calculate</h2>
+        <h2 id="workbench-title">Calculate &amp; Visualize</h2>
       </header>
 
-      <form class="calculator" novalidate>
-        <div class="calculation-grid">
-          <div class="score-zone input-zone">
-            <label for="raw-score">Raw score</label>
-            <div class="input-line">
+      <div class="instrument-grid">
+        <form class="calculator" novalidate>
+          <div class="calculation-grid">
+            <div class="score-zone input-zone">
+              <label for="raw-score">Raw score</label>
+              <div class="input-line">
+                <input
+                  id="raw-score"
+                  name="raw-score"
+                  type="number"
+                  value="64"
+                  min="0"
+                  max="100"
+                  step="any"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  aria-describedby="score-error"
+                  aria-invalid="false"
+                />
+                <span class="unit" aria-hidden="true">%</span>
+              </div>
               <input
-                id="raw-score"
-                name="raw-score"
-                type="number"
-                value="64"
+                class="number-range"
+                type="range"
                 min="0"
                 max="100"
-                step="any"
-                inputmode="decimal"
-                autocomplete="off"
-                aria-describedby="score-error"
-                aria-invalid="false"
+                step="0.1"
+                value="64"
+                data-input-id="raw-score"
+                aria-label="Adjust raw score"
               />
-              <span class="unit" aria-hidden="true">%</span>
+              <p id="score-error" class="input-error" aria-live="polite"></p>
             </div>
-            <input
-              class="number-range"
-              type="range"
-              min="0"
-              max="100"
-              step="0.1"
-              value="64"
-              data-input-id="raw-score"
-              aria-label="Adjust raw score"
+
+            <div class="direction" aria-hidden="true">
+              <span class="direction-line"></span>
+              <span class="direction-arrow">→</span>
+            </div>
+            <span class="sr-only">is curved to</span>
+
+            <div class="score-zone result-zone">
+              <span class="score-label">Curved score</span>
+              <output id="curved-score" for="raw-score" class="result-value">
+                80<span>%</span>
+              </output>
+              <p id="score-boost" class="score-boost">+16 percentage points</p>
+            </div>
+          </div>
+
+          <div class="formula-row">
+            <div>
+              <span class="formula-label">Square root curve formula</span>
+              <output id="formula-output" for="raw-score" class="formula-value">
+                √64 × 10 = 80
+              </output>
+            </div>
+            <p class="formula-note">
+              Lower raw scores receive a larger boost while 100 remains 100.
+            </p>
+          </div>
+        </form>
+
+        <div id="graph" class="visualize-panel">
+          <figure class="curve-figure">
+          <svg
+            class="curve-graph"
+            width="740"
+            height="450"
+            viewBox="0 0 740 450"
+            role="img"
+            aria-labelledby="curve-graph-title curve-graph-description"
+          >
+            <title id="curve-graph-title">Square root grading curve from 0 to 100</title>
+            <desc id="curve-graph-description">
+              The square root curve starts at 0, rises above the unchanged-score line for scores
+              between 0 and 100, and meets it again at 100.
+            </desc>
+
+            <g class="graph-grid" aria-hidden="true">
+              {graphTicks.map((tick) => (
+                <>
+                  <line x1={graphX(tick)} y1={graphBox.top} x2={graphX(tick)} y2={graphBox.bottom} />
+                  <line x1={graphBox.left} y1={graphY(tick)} x2={graphBox.right} y2={graphY(tick)} />
+                </>
+              ))}
+            </g>
+
+            <g class="graph-axes" aria-hidden="true">
+              <line x1={graphBox.left} y1={graphBox.top} x2={graphBox.left} y2={graphBox.bottom} />
+              <line x1={graphBox.left} y1={graphBox.bottom} x2={graphBox.right} y2={graphBox.bottom} />
+            </g>
+
+            <g class="graph-ticks" aria-hidden="true">
+              {graphTicks.map((tick) => (
+                <>
+                  <text x={graphX(tick)} y="420" text-anchor="middle">{tick}</text>
+                  <text x="56" y={graphY(tick) + 5} text-anchor="end">{tick}</text>
+                </>
+              ))}
+              <text class="graph-axis-label" x="386" y="445" text-anchor="middle">Raw score</text>
+              <text class="graph-axis-label" x="18" y="212" text-anchor="middle" transform="rotate(-90 18 212)">
+                Curved score
+              </text>
+            </g>
+
+            <line
+              class="graph-reference"
+              x1={graphBox.left}
+              y1={graphBox.bottom}
+              x2={graphBox.right}
+              y2={graphBox.top}
+              aria-hidden="true"
             />
-            <p id="score-error" class="input-error" aria-live="polite"></p>
-          </div>
+            <path class="graph-curve" d={graphPath} aria-hidden="true" />
 
-          <div class="direction" aria-hidden="true">
-            <span class="direction-line"></span>
-            <span class="direction-arrow">→</span>
-          </div>
-          <span class="sr-only">is curved to</span>
+            <g class="graph-direct-labels" aria-hidden="true">
+              <text class="curve-label" x={graphX(23)} y={graphY(48) - 16}>Square root curve</text>
+              <text class="reference-label" x={graphX(77) - 8} y={graphY(77) + 23} text-anchor="end">No curve</text>
+            </g>
 
-          <div class="score-zone result-zone">
-            <span class="score-label">Curved score</span>
-            <output id="curved-score" for="raw-score" class="result-value">
-              80<span>%</span>
-            </output>
-            <p id="score-boost" class="score-boost">+16 percentage points</p>
-          </div>
+            <g id="graph-current" class="graph-current" aria-hidden="true">
+              <line id="graph-guide-x" class="graph-guide" x1={graphX(64)} y1={graphY(80)} x2={graphX(64)} y2={graphBox.bottom} />
+              <line id="graph-guide-y" class="graph-guide" x1={graphBox.left} y1={graphY(80)} x2={graphX(64)} y2={graphY(80)} />
+              <circle id="graph-current-point" cx={graphX(64)} cy={graphY(80)} r="5.5" />
+              <text id="graph-current-label" x={graphX(64) + 13} y={graphY(80) - 13}>64 → 80</text>
+            </g>
+          </svg>
+          <figcaption>
+            Scores below 100 sit above the no-curve line, showing the increase produced by the square root curve.
+          </figcaption>
+          </figure>
         </div>
-
-        <div class="formula-row">
-          <div>
-            <span class="formula-label">Square-root curve formula</span>
-            <output id="formula-output" for="raw-score" class="formula-value">
-              √64 × 10 = 80
-            </output>
-          </div>
-          <p class="formula-note">
-            Lower raw scores receive a larger boost while 100 remains 100.
-          </p>
-        </div>
-      </form>
+      </div>
     </section>
-
-    <section id="graph" class="visualize-section" aria-labelledby="visualize-title">
-      <header class="visualize-heading">
-        <div class="section-kicker">
-          <span aria-hidden="true">02</span>
-          <span>Visualize</span>
-        </div>
-        <h2 id="visualize-title">How the Square Root Curve Changes Grades</h2>
-        <p>The curved score rises quickly at lower grades and gradually approaches 100.</p>
-      </header>
-
-      <figure class="curve-figure">
-        <svg
-          class="curve-graph"
-          width="740"
-          height="450"
-          viewBox="0 0 740 450"
-          role="img"
-          aria-labelledby="curve-graph-title curve-graph-description"
-        >
-          <title id="curve-graph-title">Square-root grading curve from 0 to 100</title>
-          <desc id="curve-graph-description">
-            The square-root curve starts at 0, rises above the unchanged-score line for scores
-            between 0 and 100, and meets it again at 100.
-          </desc>
-
-          <g class="graph-grid" aria-hidden="true">
-            {graphTicks.map((tick) => (
-              <>
-                <line x1={graphX(tick)} y1={graphBox.top} x2={graphX(tick)} y2={graphBox.bottom} />
-                <line x1={graphBox.left} y1={graphY(tick)} x2={graphBox.right} y2={graphY(tick)} />
-              </>
-            ))}
-          </g>
-
-          <g class="graph-axes" aria-hidden="true">
-            <line x1={graphBox.left} y1={graphBox.top} x2={graphBox.left} y2={graphBox.bottom} />
-            <line x1={graphBox.left} y1={graphBox.bottom} x2={graphBox.right} y2={graphBox.bottom} />
-          </g>
-
-          <g class="graph-ticks" aria-hidden="true">
-            {graphTicks.map((tick) => (
-              <>
-                <text x={graphX(tick)} y="420" text-anchor="middle">{tick}</text>
-                <text x="56" y={graphY(tick) + 5} text-anchor="end">{tick}</text>
-              </>
-            ))}
-            <text class="graph-axis-label" x="386" y="445" text-anchor="middle">Raw score</text>
-            <text class="graph-axis-label" x="18" y="212" text-anchor="middle" transform="rotate(-90 18 212)">
-              Curved score
-            </text>
-          </g>
-
-          <line
-            class="graph-reference"
-            x1={graphBox.left}
-            y1={graphBox.bottom}
-            x2={graphBox.right}
-            y2={graphBox.top}
-            aria-hidden="true"
-          />
-          <path class="graph-curve" d={graphPath} aria-hidden="true" />
-
-          <g class="graph-direct-labels" aria-hidden="true">
-            <text class="curve-label" x={graphX(23)} y={graphY(48) - 16}>Square root curve</text>
-            <text class="reference-label" x={graphX(77) - 8} y={graphY(77) + 23} text-anchor="end">No curve</text>
-          </g>
-
-          <g id="graph-current" class="graph-current" aria-hidden="true">
-            <line id="graph-guide-x" class="graph-guide" x1={graphX(64)} y1={graphY(80)} x2={graphX(64)} y2={graphBox.bottom} />
-            <line id="graph-guide-y" class="graph-guide" x1={graphBox.left} y1={graphY(80)} x2={graphX(64)} y2={graphY(80)} />
-            <circle id="graph-current-point" cx={graphX(64)} cy={graphY(80)} r="5.5" />
-            <text id="graph-current-label" x={graphX(64) + 13} y={graphY(80) - 13}>64 → 80</text>
-          </g>
-        </svg>
-        <figcaption>
-          Scores below 100 sit above the no-curve line, showing the increase produced by the square-root curve.
-        </figcaption>
-      </figure>
-    </section>
-
 
     <section id="chart" class="chart-section" aria-labelledby="chart-title">
       <div class="chart-heading">
         <div class="chart-title-group">
           <div class="section-kicker">
-            <span aria-hidden="true">03</span>
+            <span aria-hidden="true">02</span>
             <span>Chart</span>
           </div>
           <h2 id="chart-title">Square Root Curve Chart</h2>
@@ -347,14 +339,14 @@ const structuredData = {
         <h2>Square Root Curve Chart</h2>
         <p class="print-formula">Curved grade = 10 × √raw grade</p>
         <p class="print-description">
-          Use this chart to convert raw percentage scores to square-root curved grades.
+          Use this chart to convert raw percentage scores to square root curved grades.
         </p>
       </div>
 
       <div class="chart-table chart-table-desktop">
         <table>
           <caption class="sr-only">
-            Square-root curved grades for raw scores from 0 through 100, arranged in three groups.
+            Square root curved grades for raw scores from 0 through 100, arranged in three groups.
           </caption>
           <thead>
             <tr>
@@ -411,7 +403,7 @@ const structuredData = {
       <div class="chart-table chart-table-mobile">
         <table>
           <caption class="sr-only">
-            Square-root curved grades for raw scores from 0 through 100.
+            Square root curved grades for raw scores from 0 through 100.
           </caption>
           <thead>
             <tr>
@@ -451,11 +443,14 @@ const structuredData = {
     <section id="more-calculators" class="more-calculators" aria-labelledby="more-calculators-title">
       <header class="more-calculators-heading">
         <div class="section-kicker">
-          <span aria-hidden="true">04</span>
+          <span aria-hidden="true">03</span>
           <span>Calculate more</span>
         </div>
         <h2 id="more-calculators-title">More Ways to Use the Square Root Curve</h2>
         <p>Work backward from a target grade or calculate directly from points earned.</p>
+        <a class="reference-link grade-curve-link" href="/grade-curve-calculator/">
+          Compare other grading methods → Grade Curve Calculator
+        </a>
       </header>
 
       <div class="calculator-spread">
@@ -513,7 +508,7 @@ const structuredData = {
           <header class="supporting-tool-heading">
             <p class="method-label">Method B</p>
             <h3>Points-Based Calculator</h3>
-            <p>Convert points earned on an assessment into a square-root curved grade.</p>
+            <p>Convert points earned on an assessment into a square root curved grade.</p>
           </header>
 
           <div class="supporting-tool-body">
@@ -607,11 +602,11 @@ const structuredData = {
     <section id="class-calculator" class="class-calculator" aria-labelledby="class-calculator-title">
       <header class="class-calculator-heading">
         <div class="section-kicker">
-          <span aria-hidden="true">05</span>
+          <span aria-hidden="true">04</span>
           <span>Class calculator</span>
         </div>
         <h2 id="class-calculator-title">Curve a Whole Class</h2>
-        <p>Paste multiple raw grades to calculate every student's square-root curved score at once.</p>
+        <p>Paste multiple raw grades to calculate every student's square root curved score at once.</p>
       </header>
 
       <form class="class-calculator-form" novalidate>
@@ -664,7 +659,7 @@ const structuredData = {
 
             <div class="class-table-scroll">
               <table class="class-results-table">
-                <caption class="sr-only">Square-root curved results for the pasted raw scores.</caption>
+                <caption class="sr-only">Square root curved results for the pasted raw scores.</caption>
                 <thead>
                   <tr>
                     <th scope="col">#</th>
@@ -684,7 +679,7 @@ const structuredData = {
     <section id="formula" class="reference-section formula-reference-section" aria-labelledby="formula-title">
       <header class="reference-heading">
         <div class="section-kicker">
-          <span aria-hidden="true">06</span>
+          <span aria-hidden="true">05</span>
           <span>Formula</span>
         </div>
         <h2 id="formula-title">Square Root Curve Formula</h2>
@@ -741,7 +736,7 @@ const structuredData = {
               <li><span>Apply the curve</span><code>√64 × 10 = 80%</code></li>
             </ol>
             <p class="reference-note">
-              Do not apply the square-root formula directly to earned points unless the
+              Do not apply the square root formula directly to earned points unless the
               assessment is scored out of 100.
             </p>
             <a class="reference-link" href="#points-calculator">Use the points-based calculator</a>
@@ -762,7 +757,7 @@ const structuredData = {
     <section id="examples" class="reference-section examples-section" aria-labelledby="examples-title">
       <header class="reference-heading">
         <div class="section-kicker">
-          <span aria-hidden="true">07</span>
+          <span aria-hidden="true">06</span>
           <span>Examples</span>
         </div>
         <h2 id="examples-title">Square Root Curve Examples</h2>
@@ -771,7 +766,7 @@ const structuredData = {
       <div class="examples-layout">
         <div>
           <table class="examples-table">
-            <caption class="sr-only">Common raw scores and their square-root curved results.</caption>
+            <caption class="sr-only">Common raw scores and their square root curved results.</caption>
             <thead>
               <tr>
                 <th scope="col">Raw score</th>
@@ -798,14 +793,14 @@ const structuredData = {
           <section aria-labelledby="lower-scores-title">
             <h3 id="lower-scores-title">Why Lower Scores Increase More</h3>
             <p>
-              Square-root growth is steepest at lower raw scores. The increase becomes smaller
+              Square root growth is steepest at lower raw scores. The increase becomes smaller
               as scores approach 100, and 100 stays 100.
             </p>
           </section>
           <section aria-labelledby="ranking-title">
             <h3 id="ranking-title">Ranking Stays in Order</h3>
             <p>
-              Because the square-root function increases across the valid range, score order is
+              Because the square root function increases across the valid range, score order is
               preserved. If Student A starts higher than Student B, Student A remains higher
               after the curve.
             </p>
@@ -817,7 +812,7 @@ const structuredData = {
     <section id="faq" class="reference-section faq-section" aria-labelledby="faq-title">
       <header class="reference-heading">
         <div class="section-kicker">
-          <span aria-hidden="true">08</span>
+          <span aria-hidden="true">07</span>
           <span>Questions</span>
         </div>
         <h2 id="faq-title">Square Root Curve FAQ</h2>
@@ -850,7 +845,7 @@ const structuredData = {
         </details>
         <details>
           <summary>How do I calculate the curve for a test not worth 100 points?</summary>
-          <p>First convert earned points to a percentage, then apply the square-root formula.</p>
+          <p>First convert earned points to a percentage, then apply the square root formula.</p>
         </details>
         <details>
           <summary>How do I reverse a square root curve?</summary>
@@ -859,7 +854,7 @@ const structuredData = {
         <details>
           <summary>Is a square root curve the same as a bell curve?</summary>
           <p>
-            No. A square-root curve transforms each score mathematically. Bell-curve grading
+            No. A square root curve transforms each score mathematically. Bell-curve grading
             typically depends on the class distribution or relative performance.
           </p>
         </details>

@@ -1,0 +1,880 @@
+---
+import Container from '../../components/Container.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  calculateAddTopScoreGap,
+  calculateFlatPoints,
+  calculateScaleToHighest,
+  calculateSquareRootCurve,
+  formatCurveValue,
+} from '../../lib/squareRootCurve';
+
+const canonical = 'https://squarerootcurve.com/grade-curve-calculator/';
+const title = 'Grade Curve Calculator — Compare Curving Methods | SquareRootCurve.com';
+const description =
+  'Compare flat-point, square root and top-score grading curves. Enter a raw grade and see how different curving methods change the result.';
+const initialRaw = 72;
+const initialPoints = 5;
+const initialHighest = 90;
+const initialFlat = calculateFlatPoints(initialRaw, initialPoints);
+const initialSquareRoot = calculateSquareRootCurve(initialRaw);
+const initialScale = calculateScaleToHighest(initialRaw, initialHighest);
+const initialGap = calculateAddTopScoreGap(initialRaw, initialHighest);
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': `${canonical}#webpage`,
+  url: canonical,
+  name: 'Grade Curve Calculator',
+  description,
+  isPartOf: { '@id': 'https://squarerootcurve.com/#website' },
+  inLanguage: 'en',
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  structuredData={structuredData}
+  navigationItems={[
+    { label: 'Calculator', href: '#calculator' },
+    { label: 'Methods', href: '#methods' },
+    { label: 'Worked Example', href: '#worked-comparison' },
+  ]}
+>
+  <Container class="authority-page">
+    <header class="authority-opening">
+      <p class="eyebrow">Grading tools</p>
+      <h1>Grade Curve Calculator</h1>
+      <p class="authority-lede">
+        Compare common ways to curve a grade and see how the same raw score changes under each method.
+      </p>
+    </header>
+
+    <section id="calculator" class="comparison-workbench" aria-labelledby="comparison-title">
+      <header class="comparison-heading">
+        <span aria-hidden="true">01</span>
+        <h2 id="comparison-title">Compare methods</h2>
+      </header>
+
+      <form id="grade-curve-form" novalidate>
+        <div class="comparison-inputs">
+          <div class="comparison-input supporting-input-group">
+            <label for="comparison-raw">Raw score</label>
+            <div class="supporting-input-line">
+              <input
+                id="comparison-raw"
+                name="comparison-raw"
+                type="number"
+                value="72"
+                min="0"
+                max="100"
+                step="any"
+                inputmode="decimal"
+                autocomplete="off"
+                aria-describedby="comparison-raw-error"
+                aria-invalid="false"
+              />
+              <span aria-hidden="true">%</span>
+            </div>
+            <input
+              class="number-range"
+              type="range"
+              min="0"
+              max="100"
+              step="0.1"
+              value="72"
+              data-input-id="comparison-raw"
+              aria-label="Adjust raw score"
+            />
+            <p id="comparison-raw-error" class="supporting-error" aria-live="polite"></p>
+          </div>
+
+          <div class="comparison-input supporting-input-group">
+            <label for="comparison-points">Points to add</label>
+            <div class="supporting-input-line">
+              <input
+                id="comparison-points"
+                name="comparison-points"
+                type="number"
+                value="5"
+                min="0"
+                step="any"
+                inputmode="decimal"
+                autocomplete="off"
+                aria-describedby="comparison-points-error"
+                aria-invalid="false"
+              />
+              <span aria-hidden="true">pts</span>
+            </div>
+            <input
+              class="number-range"
+              type="range"
+              min="0"
+              max="20"
+              step="0.1"
+              value="5"
+              data-input-id="comparison-points"
+              data-expand-max="true"
+              aria-label="Adjust points to add"
+            />
+            <p id="comparison-points-error" class="supporting-error" aria-live="polite"></p>
+          </div>
+
+          <div class="comparison-input supporting-input-group">
+            <label for="comparison-highest">Highest score in class</label>
+            <div class="supporting-input-line">
+              <input
+                id="comparison-highest"
+                name="comparison-highest"
+                type="number"
+                value="90"
+                min="0.1"
+                max="100"
+                step="any"
+                inputmode="decimal"
+                autocomplete="off"
+                aria-describedby="comparison-highest-error"
+                aria-invalid="false"
+              />
+              <span aria-hidden="true">%</span>
+            </div>
+            <input
+              class="number-range"
+              type="range"
+              min="0.1"
+              max="100"
+              step="0.1"
+              value="90"
+              data-input-id="comparison-highest"
+              aria-label="Adjust highest score in class"
+            />
+            <p id="comparison-highest-error" class="supporting-error" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <div class="comparison-table-scroll" tabindex="0" aria-label="Grade curve method comparison">
+          <table class="comparison-table">
+            <caption>
+              Comparison for <strong id="comparison-caption-raw">72%</strong> raw score
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Method</th>
+                <th scope="col">Calculation</th>
+                <th scope="col">Curved score</th>
+                <th scope="col">Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-comparison-row="flat">
+                <th scope="row">Flat points</th>
+                <td id="flat-calculation" class="calculation-cell">72 + 5 = 77</td>
+                <td><output id="flat-result">{formatCurveValue(initialFlat.adjusted)}%</output></td>
+                <td><output id="flat-change">+{formatCurveValue(initialFlat.change)}</output></td>
+              </tr>
+              <tr data-comparison-row="square-root">
+                <th scope="row">Square root</th>
+                <td id="square-root-calculation" class="calculation-cell">10 × √72 = 84.9</td>
+                <td><output id="square-root-result">{formatCurveValue(initialSquareRoot.curved)}%</output></td>
+                <td><output id="square-root-change">+{formatCurveValue(initialSquareRoot.boost)}</output></td>
+              </tr>
+              <tr data-comparison-row="scale">
+                <th scope="row">Scale highest to 100</th>
+                <td id="scale-calculation" class="calculation-cell">72 × (100 / 90) = 80</td>
+                <td><output id="scale-result">{formatCurveValue(initialScale.adjusted)}%</output></td>
+                <td><output id="scale-change">+{formatCurveValue(initialScale.change)}</output></td>
+              </tr>
+              <tr data-comparison-row="gap">
+                <th scope="row">Add top-score gap</th>
+                <td id="gap-calculation" class="calculation-cell">72 + 10 = 82</td>
+                <td><output id="gap-result">{formatCurveValue(initialGap.adjusted)}%</output></td>
+                <td><output id="gap-change">+{formatCurveValue(initialGap.change)}</output></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p id="comparison-status" class="sr-only" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section id="methods" class="authority-section" aria-labelledby="methods-title">
+      <header class="authority-section-heading">
+        <div class="section-kicker"><span aria-hidden="true">02</span><span>Methods</span></div>
+        <h2 id="methods-title">How each grading curve works</h2>
+      </header>
+
+      <div class="method-reference">
+        <article>
+          <p class="method-label">Flat points</p>
+          <h3>Add the same number of points</h3>
+          <p>Each raw score receives a fixed increase. The displayed result is capped at 100%.</p>
+          <p><strong>Formula</strong> <code>result = raw + points</code></p>
+          <p><strong>Example</strong> <code>72 + 5 = 77%</code></p>
+          <p><strong>Parameter</strong> Points to add</p>
+        </article>
+
+        <article>
+          <p class="method-label">Square root curve</p>
+          <h3>Transform the raw percentage</h3>
+          <p>The square root transformation gives lower scores a larger numerical increase.</p>
+          <p><strong>Formula</strong> <code>result = 10 × √raw</code></p>
+          <p><strong>Example</strong> <code>72 → approximately 84.9%</code></p>
+          <p><strong>Parameter</strong> None</p>
+          <a class="reference-link" href="/#calculator">Open the full Square Root Curve Calculator →</a>
+        </article>
+
+        <article>
+          <p class="method-label">Scale highest score to 100</p>
+          <h3>Multiply every score by one factor</h3>
+          <p>All scores are multiplied by the same factor based on the highest score.</p>
+          <p><strong>Formula</strong> <code>result = raw × (100 / highest score)</code></p>
+          <p><strong>Example</strong> <code>72 × (100 / 90) = 80%</code></p>
+          <p><strong>Parameter</strong> Highest score in class</p>
+        </article>
+
+        <article>
+          <p class="method-label">Add top-score gap</p>
+          <h3>Add the same gap to every score</h3>
+          <p>The difference between the highest score and 100 is added to every score.</p>
+          <p><strong>Formula</strong> <code>result = raw + (100 − highest score)</code></p>
+          <p><strong>Example</strong> <code>72 + (100 − 90) = 82%</code></p>
+          <p><strong>Parameter</strong> Highest score in class</p>
+        </article>
+      </div>
+    </section>
+
+    <aside class="curve-distinction" aria-labelledby="distinction-title">
+      <div>
+        <p class="section-kicker"><span aria-hidden="true">Note</span><span>Important distinction</span></p>
+        <h2 id="distinction-title">Grading on a curve is not one formula.</h2>
+      </div>
+      <p>
+        Instructors use different transformations, so apply the method your instructor or institution
+        actually specifies. A statistical bell curve or z-score normalization is a separate,
+        class-distribution method and is not calculated here.
+      </p>
+    </aside>
+
+    <section id="worked-comparison" class="authority-section" aria-labelledby="worked-title">
+      <header class="authority-section-heading">
+        <div class="section-kicker"><span aria-hidden="true">03</span><span>Worked comparison</span></div>
+        <h2 id="worked-title">One raw score, four different results</h2>
+        <p>Raw score: 64% · Points added: 5 · Highest score: 80%</p>
+      </header>
+
+      <div class="reference-table-scroll" tabindex="0" aria-label="Worked grade curve comparison">
+        <table class="reference-table worked-table">
+          <thead>
+            <tr><th scope="col">Method</th><th scope="col">Arithmetic</th><th scope="col">Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Flat points</th><td><code>64 + 5</code></td><td>69%</td></tr>
+            <tr><th scope="row">Square root</th><td><code>10 × √64</code></td><td>80%</td></tr>
+            <tr><th scope="row">Scale highest to 100</th><td><code>64 × (100 / 80)</code></td><td>80%</td></tr>
+            <tr><th scope="row">Add top-score gap</th><td><code>gap = 100 − 80 = 20; 64 + 20</code></td><td>84%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="authority-section prose-section" aria-labelledby="definition-title">
+      <header class="authority-section-heading">
+        <div class="section-kicker"><span aria-hidden="true">04</span><span>Definition</span></div>
+        <h2 id="definition-title">What is a grade curve?</h2>
+      </header>
+      <p>
+        Curving a grade broadly means applying a defined adjustment or mathematical transformation
+        to a raw grade. The phrase alone does not identify the formula; the specific method and any
+        required parameter must be stated.
+      </p>
+    </section>
+
+    <section class="authority-section" aria-labelledby="choice-title">
+      <header class="authority-section-heading">
+        <div class="section-kicker"><span aria-hidden="true">05</span><span>Reference</span></div>
+        <h2 id="choice-title">Which grade curve should I use?</h2>
+        <p>Match the calculation to the grading policy that was actually specified.</p>
+      </header>
+
+      <div class="reference-table-scroll" tabindex="0" aria-label="Grade curve method reference">
+        <table class="reference-table decision-table">
+          <thead>
+            <tr><th scope="col">If the instructor says</th><th scope="col">Use</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>“Add 5 points”</td><td>Flat points</td></tr>
+            <tr><td>“The highest grade becomes 100 and everyone is scaled proportionally”</td><td>Scale highest score to 100</td></tr>
+            <tr><td>“Add the difference between the highest score and 100”</td><td>Add top-score gap</td></tr>
+            <tr><td>“Use a square root curve”</td><td>Square root method</td></tr>
+            <tr><td>“Bell curve,” “normal distribution,” or “z-score”</td><td>A different distribution-based method; not calculated here</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="related-links">
+        For the specialist method, see the <a class="reference-link" href="/#chart">complete Square Root Curve Chart</a>
+        or review the <a class="reference-link" href="/#formula">formula and worked examples</a>.
+      </p>
+    </section>
+
+    <section class="authority-section faq-section" aria-labelledby="faq-title">
+      <header class="authority-section-heading">
+        <div class="section-kicker"><span aria-hidden="true">06</span><span>Questions</span></div>
+        <h2 id="faq-title">Grade Curve Calculator FAQ</h2>
+      </header>
+
+      <div class="faq-list">
+        <details>
+          <summary>What is a grade curve calculator?</summary>
+          <p>It compares a raw grade with the result of a specified grading adjustment or transformation.</p>
+        </details>
+        <details>
+          <summary>How do you calculate a curved grade?</summary>
+          <p>Apply the exact formula or point adjustment stated by the instructor to the raw grade.</p>
+        </details>
+        <details>
+          <summary>What is a flat grade curve?</summary>
+          <p>A fixed number of points is added to every raw score, usually with results capped at 100%.</p>
+        </details>
+        <details>
+          <summary>How does scaling the highest score to 100 work?</summary>
+          <p>Multiply each raw score by <code>100 ÷ highest score</code>.</p>
+        </details>
+        <details>
+          <summary>Is scaling to the highest score the same as adding points?</summary>
+          <p>No. Scaling multiplies scores by a factor; adding points applies the same numerical increase.</p>
+        </details>
+        <details>
+          <summary>What is a square root grading curve?</summary>
+          <p>It transforms a raw percentage with <code>10 × √raw grade</code>.</p>
+        </details>
+        <details>
+          <summary>Is a grade curve the same as a bell curve?</summary>
+          <p>No. A bell curve uses the class distribution; many grade curves use fixed arithmetic transformations.</p>
+        </details>
+        <details>
+          <summary>Can a curved grade go above 100?</summary>
+          <p>Some uncapped formulas can. This calculator caps flat-point and top-score-gap results at 100%.</p>
+        </details>
+      </div>
+    </section>
+  </Container>
+</BaseLayout>
+
+<script>
+  import {
+    calculateAddTopScoreGap,
+    calculateFlatPoints,
+    calculateScaleToHighest,
+    calculateSquareRootCurve,
+    formatCurveValue,
+    parseRawScore,
+  } from '../../lib/squareRootCurve';
+
+  const form = document.querySelector<HTMLFormElement>('#grade-curve-form');
+  const rawInput = document.querySelector<HTMLInputElement>('#comparison-raw');
+  const pointsInput = document.querySelector<HTMLInputElement>('#comparison-points');
+  const highestInput = document.querySelector<HTMLInputElement>('#comparison-highest');
+  const rawError = document.querySelector<HTMLElement>('#comparison-raw-error');
+  const pointsError = document.querySelector<HTMLElement>('#comparison-points-error');
+  const highestError = document.querySelector<HTMLElement>('#comparison-highest-error');
+  const captionRaw = document.querySelector<HTMLElement>('#comparison-caption-raw');
+  const status = document.querySelector<HTMLElement>('#comparison-status');
+
+  type RowName = 'flat' | 'square-root' | 'scale' | 'gap';
+
+  const rows = new Map<RowName, {
+    calculation: HTMLElement | null;
+    result: HTMLOutputElement | null;
+    change: HTMLOutputElement | null;
+  }>([
+    ['flat', {
+      calculation: document.querySelector('#flat-calculation'),
+      result: document.querySelector('#flat-result'),
+      change: document.querySelector('#flat-change'),
+    }],
+    ['square-root', {
+      calculation: document.querySelector('#square-root-calculation'),
+      result: document.querySelector('#square-root-result'),
+      change: document.querySelector('#square-root-change'),
+    }],
+    ['scale', {
+      calculation: document.querySelector('#scale-calculation'),
+      result: document.querySelector('#scale-result'),
+      change: document.querySelector('#scale-change'),
+    }],
+    ['gap', {
+      calculation: document.querySelector('#gap-calculation'),
+      result: document.querySelector('#gap-result'),
+      change: document.querySelector('#gap-change'),
+    }],
+  ]);
+
+  const formatChange = (value: number) => {
+    const formatted = formatCurveValue(value);
+    return value > 0 ? `+${formatted}` : formatted;
+  };
+
+  const renderRow = (name: RowName, calculation: string, adjusted: number, change: number) => {
+    const row = rows.get(name);
+    if (!row?.calculation || !row.result || !row.change) return;
+    row.calculation.textContent = calculation;
+    row.result.textContent = `${formatCurveValue(adjusted)}%`;
+    row.change.textContent = formatChange(change);
+  };
+
+  const clearRow = (name: RowName, message = 'Enter valid inputs') => {
+    const row = rows.get(name);
+    if (!row?.calculation || !row.result || !row.change) return;
+    row.calculation.textContent = message;
+    row.result.textContent = '—';
+    row.change.textContent = '—';
+  };
+
+  const parseNonNegative = (value: string) => {
+    if (value.trim() === '') return { valid: false as const, reason: 'empty' as const };
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return { valid: false as const, reason: 'malformed' as const };
+    if (parsed < 0) return { valid: false as const, reason: 'range' as const };
+    return { valid: true as const, value: parsed };
+  };
+
+  const parseHighest = (value: string) => {
+    const parsed = parseRawScore(value);
+    if (!parsed.valid || parsed.value === 0) return { valid: false as const, reason: parsed.valid ? 'range' as const : parsed.reason };
+    return parsed;
+  };
+
+  const updateComparison = () => {
+    if (!rawInput || !pointsInput || !highestInput || !rawError || !pointsError || !highestError || !captionRaw || !status) return;
+
+    const raw = parseRawScore(rawInput.value);
+    const points = parseNonNegative(pointsInput.value);
+    const highest = parseHighest(highestInput.value);
+
+    rawInput.setAttribute('aria-invalid', String(!raw.valid && raw.reason !== 'empty'));
+    pointsInput.setAttribute('aria-invalid', String(!points.valid && points.reason !== 'empty'));
+    highestInput.setAttribute('aria-invalid', String(!highest.valid && highest.reason !== 'empty'));
+    rawError.textContent = !raw.valid && raw.reason !== 'empty' ? 'Enter a raw score from 0 to 100.' : '';
+    pointsError.textContent = !points.valid && points.reason !== 'empty' ? 'Enter zero or more points.' : '';
+    highestError.textContent = !highest.valid && highest.reason !== 'empty' ? 'Enter a highest score greater than 0 and no more than 100.' : '';
+
+    if (!raw.valid) {
+      captionRaw.textContent = '—';
+      (['flat', 'square-root', 'scale', 'gap'] as RowName[]).forEach((name) => clearRow(name));
+      status.textContent = 'Enter a valid raw score to compare methods.';
+      return;
+    }
+
+    const rawLabel = formatCurveValue(raw.value);
+    captionRaw.textContent = `${rawLabel}%`;
+
+    const squareRoot = calculateSquareRootCurve(raw.value);
+    const squareRootLabel = formatCurveValue(squareRoot.curved);
+    renderRow('square-root', `10 × √${rawLabel} = ${squareRootLabel}`, squareRoot.curved, squareRoot.boost);
+
+    if (points.valid) {
+      const flat = calculateFlatPoints(raw.value, points.value);
+      const uncapped = raw.value + points.value;
+      const flatFormula = uncapped > 100
+        ? `${rawLabel} + ${formatCurveValue(points.value)} = ${formatCurveValue(uncapped)}; capped at 100`
+        : `${rawLabel} + ${formatCurveValue(points.value)} = ${formatCurveValue(flat.adjusted)}`;
+      renderRow('flat', flatFormula, flat.adjusted, flat.change);
+    } else {
+      clearRow('flat', 'Enter valid points to add');
+    }
+
+    if (highest.valid) {
+      const highestLabel = formatCurveValue(highest.value);
+      const gap = calculateAddTopScoreGap(raw.value, highest.value);
+      const gapValue = 100 - highest.value;
+      const uncappedGap = raw.value + gapValue;
+      const gapFormula = uncappedGap > 100
+        ? `${rawLabel} + ${formatCurveValue(gapValue)} = ${formatCurveValue(uncappedGap)}; capped at 100`
+        : `${rawLabel} + ${formatCurveValue(gapValue)} = ${formatCurveValue(gap.adjusted)}`;
+      renderRow('gap', gapFormula, gap.adjusted, gap.change);
+
+      if (raw.value > highest.value) {
+        clearRow('scale', 'Highest score must be at least the raw score');
+        highestInput.setAttribute('aria-invalid', 'true');
+        highestError.textContent = 'For proportional scaling, the highest score must be at least the raw score.';
+      } else {
+        const scale = calculateScaleToHighest(raw.value, highest.value);
+        renderRow(
+          'scale',
+          `${rawLabel} × (100 / ${highestLabel}) = ${formatCurveValue(scale.adjusted)}`,
+          scale.adjusted,
+          scale.change,
+        );
+      }
+    } else {
+      clearRow('scale', 'Enter a valid highest score');
+      clearRow('gap', 'Enter a valid highest score');
+    }
+
+    status.textContent = `Comparison updated for a raw score of ${rawLabel} percent.`;
+  };
+
+  form?.addEventListener('submit', (event) => event.preventDefault());
+  [rawInput, pointsInput, highestInput].forEach((input) => input?.addEventListener('input', updateComparison));
+
+  document.querySelectorAll<HTMLInputElement>('.number-range[data-input-id]').forEach((range) => {
+    const inputId = range.dataset.inputId;
+    const linkedInput = inputId ? document.querySelector<HTMLInputElement>(`#${inputId}`) : null;
+    if (!linkedInput) return;
+
+    const syncRange = () => {
+      const value = Number(linkedInput.value);
+      if (range.dataset.expandMax === 'true' && Number.isFinite(value) && value > Number(range.max)) {
+        range.max = String(value);
+      }
+      if (Number.isFinite(value)) {
+        range.value = String(Math.min(Math.max(value, Number(range.min)), Number(range.max)));
+      }
+    };
+
+    range.addEventListener('input', () => {
+      linkedInput.value = range.value;
+      linkedInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    linkedInput.addEventListener('input', syncRange);
+    syncRange();
+  });
+</script>
+
+<style>
+  .authority-page {
+    padding-block: clamp(2.75rem, 5vw, 5rem) var(--space-7);
+  }
+
+  .authority-opening {
+    max-width: 52rem;
+  }
+
+  .authority-lede {
+    max-width: 45rem;
+    margin-top: var(--space-4);
+    color: var(--ink-muted);
+    font-family: var(--font-editorial);
+    font-size: var(--text-lede);
+    line-height: 1.55;
+  }
+
+  .comparison-workbench {
+    margin-top: clamp(2rem, 5vw, 3.5rem);
+    border-block: var(--border-width) solid var(--ink);
+    background: color-mix(in srgb, var(--surface) 48%, transparent);
+    scroll-margin-top: var(--space-5);
+  }
+
+  .comparison-heading {
+    min-height: 3.25rem;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    border-bottom: var(--border-width) solid var(--rule);
+  }
+
+  .comparison-heading span,
+  .comparison-heading h2 {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .comparison-heading span {
+    color: var(--pencil-red);
+  }
+
+  .comparison-inputs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: var(--border-width) solid var(--rule);
+  }
+
+  .comparison-input {
+    min-width: 0;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  .comparison-input + .comparison-input {
+    border-left: var(--border-width) solid var(--rule);
+  }
+
+  .comparison-input :global(.supporting-input-line input) {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .comparison-input :global(.supporting-error) {
+    min-height: 3em;
+  }
+
+  .comparison-table-scroll,
+  .reference-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .comparison-table,
+  .reference-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .comparison-table {
+    min-width: 43rem;
+  }
+
+  .comparison-table caption {
+    padding: var(--space-3) clamp(1rem, 3vw, 2rem);
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    text-align: left;
+  }
+
+  .comparison-table thead,
+  .reference-table thead {
+    border-block: var(--border-width) solid var(--ink);
+  }
+
+  .comparison-table th,
+  .comparison-table td,
+  .reference-table th,
+  .reference-table td {
+    padding: 0.8rem clamp(0.75rem, 2vw, 1.5rem);
+    border-bottom: var(--border-width) solid var(--rule);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .comparison-table thead th,
+  .reference-table thead th {
+    color: var(--ink-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .comparison-table tbody th,
+  .reference-table tbody th {
+    font-weight: 600;
+  }
+
+  .comparison-table output,
+  .comparison-table .calculation-cell,
+  .reference-table code,
+  .worked-table td:last-child {
+    font-family: var(--font-mono);
+  }
+
+  .comparison-table output {
+    color: var(--academic-blue);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .calculation-cell {
+    color: var(--ink-muted);
+  }
+
+  .authority-section {
+    padding-top: var(--space-7);
+  }
+
+  .authority-section-heading {
+    max-width: 52rem;
+    padding-bottom: var(--space-5);
+    border-bottom: var(--border-width) solid var(--ink);
+  }
+
+  .authority-section-heading h2,
+  .curve-distinction h2 {
+    font-family: var(--font-editorial);
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+  }
+
+  .authority-section-heading > p {
+    margin-top: var(--space-3);
+    color: var(--ink-muted);
+  }
+
+  .method-reference {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-bottom: var(--border-width) solid var(--ink);
+  }
+
+  .method-reference article {
+    min-width: 0;
+    padding: var(--space-5) clamp(1rem, 3vw, 2rem);
+    border-bottom: var(--border-width) solid var(--rule);
+  }
+
+  .method-reference article:nth-child(even) {
+    border-left: var(--border-width) solid var(--rule);
+  }
+
+  .method-reference h3 {
+    font-family: var(--font-editorial);
+    font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+    line-height: 1.15;
+  }
+
+  .method-reference article > p:not(.method-label) {
+    margin-top: var(--space-2);
+    color: var(--ink-muted);
+  }
+
+  .method-reference code,
+  .faq-list code {
+    color: var(--academic-blue);
+    font-family: var(--font-mono);
+  }
+
+  .method-reference .reference-link {
+    display: inline-block;
+    margin-top: var(--space-3);
+  }
+
+  .curve-distinction {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.85fr) minmax(0, 1.15fr);
+    align-items: start;
+    gap: var(--space-6);
+    margin-top: var(--space-7);
+    padding-block: var(--space-5);
+    border-block: var(--border-width) solid var(--ink);
+  }
+
+  .curve-distinction > p {
+    color: var(--ink-muted);
+    line-height: 1.7;
+  }
+
+  .reference-table-scroll {
+    margin-top: var(--space-5);
+    border-bottom: var(--border-width) solid var(--ink);
+  }
+
+  .reference-table {
+    min-width: 38rem;
+  }
+
+  .reference-table td:last-child {
+    color: var(--academic-blue);
+    font-weight: 500;
+  }
+
+  .worked-table th:first-child,
+  .worked-table td:first-child {
+    width: 28%;
+  }
+
+  .worked-table th:last-child,
+  .worked-table td:last-child {
+    width: 16%;
+    text-align: right;
+  }
+
+  .prose-section > p {
+    max-width: 49rem;
+    margin-top: var(--space-5);
+    color: var(--ink-muted);
+    font-family: var(--font-editorial);
+    font-size: var(--text-lede);
+  }
+
+  .decision-table td:first-child {
+    width: 62%;
+  }
+
+  .related-links {
+    max-width: 50rem;
+    margin-top: var(--space-4);
+    color: var(--ink-muted);
+  }
+
+  .faq-section {
+    padding-bottom: 0;
+  }
+
+  .faq-list {
+    margin-top: var(--space-5);
+    border-block: var(--border-width) solid var(--ink);
+  }
+
+  .faq-list details {
+    border-bottom: var(--border-width) solid var(--rule);
+  }
+
+  .faq-list details:last-child {
+    border-bottom: 0;
+  }
+
+  .faq-list summary {
+    padding: var(--space-4) var(--space-5);
+    cursor: pointer;
+    font-family: var(--font-editorial);
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  .faq-list details > p {
+    max-width: 49rem;
+    padding: 0 var(--space-5) var(--space-4);
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 56rem) {
+    .comparison-inputs,
+    .method-reference,
+    .curve-distinction {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .comparison-input + .comparison-input,
+    .method-reference article:nth-child(even) {
+      border-left: 0;
+      border-top: var(--border-width) solid var(--rule);
+    }
+
+    .curve-distinction {
+      gap: var(--space-3);
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .authority-page {
+      padding-top: var(--space-5);
+    }
+
+    .comparison-input {
+      padding-inline: clamp(1rem, 6vw, 2rem);
+    }
+
+    .comparison-table,
+    .reference-table {
+      min-width: 36rem;
+    }
+
+    .authority-section-heading h2,
+    .curve-distinction h2 {
+      font-size: clamp(2rem, 9vw, 2.5rem);
+    }
+
+    .faq-list summary,
+    .faq-list details > p {
+      padding-inline: var(--space-3);
+    }
+  }
+</style>

@@ -2,11 +2,17 @@
 import Container from '../components/Container.astro';
 import '../styles/global.css';
 
+interface NavigationItem {
+  label: string;
+  href: string;
+}
+
 interface Props {
   title: string;
   description: string;
   canonical?: string;
   structuredData?: Record<string, unknown>;
+  navigationItems?: NavigationItem[];
 }
 
 const {
@@ -14,6 +20,11 @@ const {
   description,
   canonical = 'https://squarerootcurve.com/',
   structuredData,
+  navigationItems = [
+    { label: 'Calculator', href: '/#calculator' },
+    { label: 'Chart', href: '/#chart' },
+    { label: 'Formula', href: '/#formula' },
+  ],
 } = Astro.props;
 ---
 
@@ -57,9 +68,9 @@ const {
         </a>
         <nav aria-label="Primary navigation">
           <ul class="nav-list">
-            <li><a href="#calculator">Calculator</a></li>
-            <li><a href="#chart">Chart</a></li>
-            <li><a href="#formula">Formula</a></li>
+            {navigationItems.map((item) => (
+              <li><a href={item.href}>{item.label}</a></li>
+            ))}
           </ul>
         </nav>
       </Container>

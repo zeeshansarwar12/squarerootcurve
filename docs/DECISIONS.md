@@ -31,3 +31,7 @@ Use small delta prompts that reference persistent project docs instead of repeat
 ## D008 — No speculative SEO implementation
 
 Schema, page expansion, and SEO features must be evidence-based and validated, not added merely because similar sites commonly use them.
+
+## D009 — First supporting authority page
+
+`/grade-curve-calculator/` owns multi-method grade-curving comparison intent, while `/` remains the canonical owner of Square Root Curve intent. “Highest score to 100” methods must explicitly distinguish proportional scaling from adding the top-score gap.
