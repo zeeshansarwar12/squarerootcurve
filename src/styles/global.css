@@ -1341,9 +1341,32 @@
     text-underline-offset: 0.18em;
   }
 
-  .grade-curve-link {
-    display: inline-block;
-    margin-top: var(--space-3);
+  .related-resource-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: var(--space-5);
+    border-block: var(--border-width) solid var(--ink);
+  }
+
+  .related-resource-list article {
+    min-width: 0;
+    padding: var(--space-5);
+  }
+
+  .related-resource-list article + article {
+    border-left: var(--border-width) solid var(--rule);
+  }
+
+  .related-resource-list h3 {
+    font-family: var(--font-editorial);
+    font-size: var(--text-xl);
+    font-weight: 600;
+  }
+
+  .related-resource-list p {
+    max-width: 31rem;
+    margin-top: var(--space-2);
+    color: var(--ink-muted);
   }
 
   .formula-display > .reference-link,
@@ -1717,7 +1740,8 @@
     }
 
     .formula-methods,
-    .examples-layout {
+    .examples-layout,
+    .related-resource-list {
       grid-template-columns: minmax(0, 1fr);
     }
 
@@ -1733,6 +1757,11 @@
 
     .supporting-tool + .supporting-tool {
       border-top: var(--border-width) solid var(--ink);
+      border-left: 0;
+    }
+
+    .related-resource-list article + article {
+      border-top: var(--border-width) solid var(--rule);
       border-left: 0;
     }
 
