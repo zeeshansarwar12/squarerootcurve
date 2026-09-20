@@ -1,0 +1,166 @@
+---
+import Container from '../../components/Container.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatCurveValue, generateSquareRootCurveChart } from '../../lib/squareRootCurve';
+
+const canonical = 'https://squarerootcurve.com/square-root-curve-chart/';
+const chartEntries = generateSquareRootCurveChart();
+const desktopGroupSize = Math.ceil(chartEntries.length / 3);
+const desktopGroups = Array.from({ length: 3 }, (_, groupIndex) =>
+  chartEntries.slice(groupIndex * desktopGroupSize, (groupIndex + 1) * desktopGroupSize),
+);
+const perfectSquares = new Set([0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100]);
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': `${canonical}#webpage`,
+  url: canonical,
+  name: 'Square Root Curve Chart (0–100 Scores)',
+  description: 'A complete printable square root curve chart for raw scores from 0 through 100.',
+  isPartOf: { '@id': 'https://squarerootcurve.com/#website' },
+  inLanguage: 'en',
+};
+---
+
+<BaseLayout
+  title="Square Root Curve Chart (0–100 Scores) | SquareRootCurve.com"
+  description="Look up every square root curved grade from 0 through 100 in a complete printable reference chart."
+  canonical={canonical}
+  structuredData={structuredData}
+  navigationItems={[
+    { label: 'Calculator', href: '/#calculator' },
+    { label: 'Chart', href: '#chart' },
+    { label: 'Formula', href: '/#formula' },
+  ]}
+>
+  <Container class="opening">
+    <header class="opening-copy">
+      <p class="eyebrow">Grading reference</p>
+      <h1>Square Root Curve Chart</h1>
+      <p class="lede">Look up the curved grade for any raw percentage score from 0 through 100.</p>
+    </header>
+
+    <section id="chart" class="chart-section" aria-labelledby="chart-title">
+      <div class="chart-heading">
+        <div class="chart-title-group">
+          <div class="section-kicker">
+            <span aria-hidden="true">01</span>
+            <span>Chart</span>
+          </div>
+          <h2 id="chart-title">Complete 0–100 Score Chart</h2>
+          <p>
+            Values use the formula <strong>curved grade = 10 × √raw grade</strong> and are rounded to one decimal place where needed.
+          </p>
+        </div>
+        <div class="chart-actions">
+          <div class="chart-action-buttons">
+            <button class="print-chart" type="button">Print chart</button>
+            <button class="download-pdf" type="button" aria-describedby="export-help">
+              Download PDF
+            </button>
+          </div>
+          <p id="export-help" class="export-help">
+            Opens the print dialog. Choose “Save as PDF” to save a copy.
+          </p>
+        </div>
+      </div>
+
+      <div class="print-heading" aria-hidden="true">
+        <div class="print-brand">
+          <p>SquareRootCurve.com</p>
+          <p>Grading Reference</p>
+        </div>
+        <h2>Square Root Curve Chart</h2>
+        <p class="print-formula">Curved grade = 10 × √raw grade</p>
+        <p class="print-description">
+          Use this chart to convert raw percentage scores to square root curved grades.
+        </p>
+      </div>
+
+      <div class="chart-table chart-table-desktop">
+        <table>
+          <caption class="sr-only">
+            Square root curved grades for raw scores from 0 through 100, arranged in three groups.
+          </caption>
+          <thead>
+            <tr>
+              {desktopGroups.map(() => (
+                <>
+                  <th scope="col">Raw</th>
+                  <th scope="col">Curved</th>
+                </>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: desktopGroupSize }, (_, rowIndex) => (
+              <tr>
+                {desktopGroups.map((group) => {
+                  const entry = group[rowIndex];
+                  return entry ? (
+                    <>
+                      <td class:list={['chart-raw', { 'is-anchor': perfectSquares.has(entry.raw) }]}>
+                        {entry.raw}
+                      </td>
+                      <td class:list={['chart-curved', { 'is-anchor': perfectSquares.has(entry.raw) }]}>
+                        {formatCurveValue(entry.curved)}
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td class="chart-empty" aria-hidden="true"></td>
+                      <td class="chart-empty" aria-hidden="true"></td>
+                    </>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="chart-table chart-table-mobile">
+        <table>
+          <caption class="sr-only">
+            Square root curved grades for raw scores from 0 through 100.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Raw score</th>
+              <th scope="col">Curved score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {chartEntries.map((entry) => (
+              <tr class:list={{ 'is-anchor': perfectSquares.has(entry.raw) }}>
+                <th scope="row">{entry.raw}</th>
+                <td>{formatCurveValue(entry.curved)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="print-footer" aria-hidden="true">
+        <p>SquareRootCurve.com</p>
+        <p>Values rounded to one decimal place where needed.</p>
+      </footer>
+    </section>
+
+    <section class="more-calculators" aria-labelledby="next-step-title">
+      <header class="more-calculators-heading">
+        <div class="section-kicker"><span aria-hidden="true">02</span><span>Calculate</span></div>
+        <h2 id="next-step-title">Calculate a Square Root Curved Grade</h2>
+        <p>
+          Use the <a class="reference-link" href="/#calculator">Square Root Curve Calculator</a> for a live result,
+          or review the <a class="reference-link" href="/#formula">formula and worked examples</a>.
+        </p>
+      </header>
+    </section>
+  </Container>
+</BaseLayout>
+
+<script>
+  document.querySelector<HTMLButtonElement>('.print-chart')?.addEventListener('click', () => window.print());
+  document.querySelector<HTMLButtonElement>('.download-pdf')?.addEventListener('click', () => window.print());
+</script>

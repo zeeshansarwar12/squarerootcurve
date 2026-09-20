@@ -1,0 +1,19 @@
+---
+import Container from '../components/Container.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Page Not Found | SquareRootCurve.com"
+  description="The requested page could not be found."
+  canonical={null}
+>
+  <Container class="opening">
+    <div class="opening-copy">
+      <p class="eyebrow">404 error</p>
+      <h1>Page Not Found</h1>
+      <p class="lede">The requested page does not exist.</p>
+      <p><a class="reference-link" href="/">Return to the Square Root Curve Calculator</a></p>
+    </div>
+  </Container>
+</BaseLayout>

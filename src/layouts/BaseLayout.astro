@@ -10,7 +10,7 @@ interface NavigationItem {
 interface Props {
   title: string;
   description: string;
-  canonical?: string;
+  canonical?: string | null;
   structuredData?: Record<string, unknown>;
   navigationItems?: NavigationItem[];
 }
@@ -37,10 +37,10 @@ const {
     <meta name="generator" content={Astro.generator} />
     <meta name="msvalidate.01" content="ADA32A2FC73ADC93B80B1231531C0854" />
     <meta name="google-site-verification" content="YMYkOwhoBYQG4G-i7_XK2PIlgVY92vwkvNRn86SdKHA" />
-    <link rel="canonical" href={canonical} />
+    {canonical && <link rel="canonical" href={canonical} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
+    {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:site_name" content="SquareRootCurve.com" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary" />
