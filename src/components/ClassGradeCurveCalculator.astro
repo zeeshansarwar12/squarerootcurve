@@ -205,8 +205,8 @@
     }
 
     const options = {
-      points: Number(pointsInput.value),
-      targetAverage: Number(targetInput.value),
+      points: pointsInput.value.trim() === '' ? Number.NaN : Number(pointsInput.value),
+      targetAverage: targetInput.value.trim() === '' ? Number.NaN : Number(targetInput.value),
     };
 
     try {
