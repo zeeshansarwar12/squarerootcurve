@@ -79,3 +79,59 @@ Also verify raw → curved → reverse returns the original raw score within flo
 ## Letter grades
 
 Letter grades are policy-dependent; never treat one US scale as universal. If added later, identify the default scale, allow customization where appropriate, and keep grading policy separate from the core formula.
+
+
+## Bell curve / z-score normalization
+
+The Bell Curve Grade Calculator uses a z-score normalization based on the full set of entered class scores.
+
+For class scores `x₁ ... xₙ`:
+
+1. Compute the class mean:
+
+`μ = (x₁ + ... + xₙ) / n`
+
+2. Compute the **population** standard deviation for the entered class:
+
+`σ = √(Σ(xᵢ − μ)² / n)`
+
+3. For each score `x`, compute its z-score:
+
+`z = (x − μ) / σ`
+
+4. Map that z-score to an instructor-selected target distribution:
+
+`adjusted = targetMean + z × targetSD`
+
+This preserves each student's relative distance from the class mean before optional clipping.
+
+### Bell curve constraints
+
+- Require at least two valid scores.
+- Require variation in the class scores; if `σ = 0`, normalization is undefined and must be refused.
+- Target mean must be between 0 and 100.
+- Target standard deviation must be greater than 0.
+- Keep full floating-point precision internally and round only for display.
+- If the user enables capping, clamp adjusted percentages to `0–100` only after the z-score transformation.
+- When capping occurs, the realized adjusted mean and standard deviation may differ from the requested target values; never claim otherwise.
+- Do not infer letter grades from z-scores unless an explicit grading policy is supplied.
+
+### Bell curve test cases
+
+For class scores `60, 70, 80`:
+
+- mean = `70`
+- population SD ≈ `8.1649658093`
+- z-scores ≈ `-1.2247448714, 0, 1.2247448714`
+
+With target mean `75` and target SD `10`, uncapped adjusted scores are approximately:
+
+- `60 → 62.752551286`
+- `70 → 75`
+- `80 → 87.247448714`
+
+Also verify:
+
+- identical scores such as `70, 70, 70` are rejected because standard deviation is zero;
+- capping keeps final adjusted percentages within `0–100`;
+- with capping disabled, the transformed distribution has the requested target mean and target population standard deviation within floating-point tolerance.

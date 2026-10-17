@@ -1,0 +1,928 @@
+---
+import Container from '../../components/Container.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { calculateBellCurve } from '../../lib/bellCurve';
+import { formatCurveValue } from '../../lib/squareRootCurve';
+
+const canonical = 'https://squarerootcurve.com/bell-curve-grade-calculator/';
+const title = 'Bell Curve Grade Calculator | SquareRootCurve.com';
+const description =
+  'Curve a class with z-score normalization. Enter class scores, choose a target mean and standard deviation, and compare raw and adjusted grades.';
+
+const initialScores = [60, 70, 80];
+const initialTargetMean = 75;
+const initialTargetSd = 10;
+const initialData = calculateBellCurve(initialScores, {
+  targetMean: initialTargetMean,
+  targetStandardDeviation: initialTargetSd,
+  capToPercentageRange: true,
+});
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': `${canonical}#webpage`,
+  url: canonical,
+  name: 'Bell Curve Grade Calculator',
+  description,
+  isPartOf: { '@id': 'https://squarerootcurve.com/#website' },
+  inLanguage: 'en',
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  structuredData={structuredData}
+  navigationItems={[
+    { label: 'Calculator', href: '#calculator' },
+    { label: 'How it works', href: '#method' },
+    { label: 'FAQ', href: '#faq' },
+  ]}
+>
+  <Container class="authority-page bell-page">
+    <header class="authority-opening">
+      <p class="eyebrow">Grading tools</p>
+      <h1>Bell Curve Grade Calculator</h1>
+      <p class="authority-lede">
+        Normalize a class with z-scores, then map the class to a target mean and standard deviation.
+        This calculator adjusts numerical percentages; it does not impose a fixed letter-grade quota.
+      </p>
+    </header>
+
+    <section id="calculator" class="bell-workbench" aria-labelledby="bell-calculator-title">
+      <header class="bell-heading">
+        <span aria-hidden="true">01</span>
+        <h2 id="bell-calculator-title">Curve class scores</h2>
+      </header>
+
+      <form id="bell-curve-form" novalidate>
+        <div class="bell-grid">
+          <div class="bell-controls">
+            <label for="bell-scores">Class scores</label>
+            <p id="bell-score-help" class="field-help">Enter percentages separated by commas, spaces, or new lines.</p>
+            <textarea
+              id="bell-scores"
+              rows="10"
+              aria-describedby="bell-score-help bell-errors"
+              aria-invalid="false"
+            >60
+70
+80</textarea>
+
+            <div class="bell-parameters">
+              <div>
+                <label for="bell-target-mean">Target mean</label>
+                <div class="parameter-line">
+                  <input id="bell-target-mean" type="number" min="0" max="100" step="0.1" value="75" inputmode="decimal" />
+                  <span aria-hidden="true">%</span>
+                </div>
+              </div>
+              <div>
+                <label for="bell-target-sd">Target standard deviation</label>
+                <div class="parameter-line">
+                  <input id="bell-target-sd" type="number" min="0.1" step="0.1" value="10" inputmode="decimal" />
+                  <span aria-hidden="true">pts</span>
+                </div>
+              </div>
+            </div>
+
+            <label class="cap-option" for="bell-cap">
+              <input id="bell-cap" type="checkbox" checked />
+              <span>
+                <strong>Cap adjusted scores at 0–100%</strong>
+                <small>When capping occurs, the final mean and standard deviation can differ from the requested targets.</small>
+              </span>
+            </label>
+
+            <p id="bell-errors" class="bell-errors" aria-live="polite"></p>
+
+            <div class="bell-actions">
+              <button type="button" class="copy-bell-results">Copy results</button>
+              <button type="button" class="clear-bell-results">Clear</button>
+              <p id="bell-status" class="bell-status" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="bell-results">
+            <div id="bell-empty" class="bell-empty" hidden>
+              Enter at least two valid scores with some variation to calculate a bell-curve adjustment.
+            </div>
+
+            <div id="bell-output">
+              <dl class="bell-summary">
+                <div>
+                  <dt>Students</dt>
+                  <dd id="bell-count">{initialData.summary.count}</dd>
+                </div>
+                <div>
+                  <dt>Class mean</dt>
+                  <dd id="bell-mean">
+                    {formatCurveValue(initialData.summary.rawMean)}% → {formatCurveValue(initialData.summary.adjustedMean)}%
+                  </dd>
+                </div>
+                <div>
+                  <dt>Standard deviation</dt>
+                  <dd id="bell-sd">
+                    {formatCurveValue(initialData.summary.rawStandardDeviation)} → {formatCurveValue(initialData.summary.adjustedStandardDeviation)}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Capped scores</dt>
+                  <dd id="bell-capped">{initialData.summary.cappedCount}</dd>
+                </div>
+              </dl>
+
+              <div class="bell-table-scroll" tabindex="0" aria-label="Bell curve grade results">
+                <table class="bell-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Raw</th>
+                      <th scope="col">z-score</th>
+                      <th scope="col">Adjusted</th>
+                      <th scope="col">Change</th>
+                    </tr>
+                  </thead>
+                  <tbody id="bell-results-body">
+                    {initialData.results.map((result, index) => (
+                      <tr>
+                        <th scope="row">{index + 1}</th>
+                        <td>{formatCurveValue(result.raw)}%</td>
+                        <td>{result.zScore.toFixed(2)}</td>
+                        <td>{formatCurveValue(result.adjusted)}%</td>
+                        <td>{result.change > 0 ? '+' : ''}{formatCurveValue(result.change)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section id="method" class="authority-section" aria-labelledby="method-title">
+      <header class="authority-section-heading">
+        <div class="section-kicker"><span aria-hidden="true">02</span><span>Method</span></div>
+        <h2 id="method-title">How this bell curve calculation works</h2>
+        <p>
+          The calculator uses z-score normalization: it measures each score's distance from the
+          class mean in standard deviations, then maps that relative position to the target distribution.
+        </p>
+      </header>
+
+      <div class="bell-formula-grid">
+        <article>
+          <p class="method-label">Step 1</p>
+          <h3>Find the class mean and standard deviation</h3>
+          <p>The entered class is treated as the full population for this calculation.</p>
+          <code>σ = √(Σ(x − μ)² / n)</code>
+        </article>
+        <article>
+          <p class="method-label">Step 2</p>
+          <h3>Convert each score to a z-score</h3>
+          <p>A z-score tells you how many standard deviations the score sits above or below the class mean.</p>
+          <code>z = (x − μ) / σ</code>
+        </article>
+        <article>
+          <p class="method-label">Step 3</p>
+          <h3>Map the z-score to the target distribution</h3>
+          <p>The target mean and target standard deviation are instructor-selected parameters, not universal grading standards.</p>
+          <code>adjusted = target mean + z × target SD</code>
+        </article>
+      </div>
+    </section>
+
+    <aside class="curve-distinction" aria-labelledby="bell-distinction-title">
+      <div>
+        <p class="section-kicker"><span aria-hidden="true">Note</span><span>Important distinction</span></p>
+        <h2 id="bell-distinction-title">“Bell curve grading” can mean different policies.</h2>
+      </div>
+      <p>
+        This page performs numerical z-score normalization. Some instructors instead use standard-deviation
+        cutoffs or predetermined grade distributions. Use the grading policy your instructor or institution
+        actually specifies.
+      </p>
+    </aside>
+
+    <section class="authority-section" aria-labelledby="example-title">
+      <header class="authority-section-heading">
+        <div class="section-kicker"><span aria-hidden="true">03</span><span>Worked example</span></div>
+        <h2 id="example-title">Example: 60, 70, 80 with a 75 mean and 10-point SD</h2>
+      </header>
+
+      <div class="reference-table-scroll" tabindex="0" aria-label="Bell curve worked example">
+        <table class="reference-table worked-table">
+          <thead>
+            <tr>
+              <th scope="col">Raw</th>
+              <th scope="col">z-score</th>
+              <th scope="col">Adjusted</th>
+            </tr>
+          </thead>
+          <tbody>
+            {initialData.results.map((result) => (
+              <tr>
+                <th scope="row">{formatCurveValue(result.raw)}%</th>
+                <td><code>{result.zScore.toFixed(3)}</code></td>
+                <td>{formatCurveValue(result.adjusted)}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="worked-note">
+        The original mean is 70 and the population standard deviation is about 8.2. The middle
+        score remains at the target mean of 75; the lower and higher scores retain their relative
+        positions around that mean.
+      </p>
+    </section>
+
+    <section class="authority-section" aria-labelledby="when-title">
+      <header class="authority-section-heading">
+        <div class="section-kicker"><span aria-hidden="true">04</span><span>Use</span></div>
+        <h2 id="when-title">When is this different from a square root curve?</h2>
+      </header>
+      <div class="comparison-copy">
+        <p>
+          A <a class="reference-link" href="/#calculator">square root curve</a> transforms each score
+          independently with the same mathematical function. It does not need the rest of the class.
+        </p>
+        <p>
+          A bell-curve or z-score adjustment depends on the class distribution. The same raw score can
+          receive a different adjusted result when the surrounding class scores change.
+        </p>
+        <p>
+          If you need to compare several non-statistical methods, use the
+          <a class="reference-link" href="/grade-curve-calculator/">Grade Curve Calculator</a>.
+        </p>
+      </div>
+    </section>
+
+    <section id="faq" class="authority-section faq-section" aria-labelledby="faq-title">
+      <header class="authority-section-heading">
+        <div class="section-kicker"><span aria-hidden="true">05</span><span>Questions</span></div>
+        <h2 id="faq-title">Bell Curve Grade Calculator FAQ</h2>
+      </header>
+
+      <div class="faq-list">
+        <details>
+          <summary>What is a z-score in grading?</summary>
+          <p>A z-score expresses how many standard deviations a score is above or below the class mean.</p>
+        </details>
+        <details>
+          <summary>Does this calculator force a normal distribution?</summary>
+          <p>No. A linear z-score transformation changes the mean and spread but does not magically make a non-normal class distribution normal.</p>
+        </details>
+        <details>
+          <summary>Why does the calculator need at least two different scores?</summary>
+          <p>If every score is identical, the class standard deviation is zero and z-scores are undefined.</p>
+        </details>
+        <details>
+          <summary>Should adjusted grades be capped at 100?</summary>
+          <p>That is a grading-policy choice. The calculator lets you cap results to 0–100, while warning that clipping can move the realized mean and standard deviation away from the requested targets.</p>
+        </details>
+        <details>
+          <summary>Is a bell curve the same as a square root curve?</summary>
+          <p>No. Bell-curve normalization depends on class statistics; a square root curve transforms each percentage independently.</p>
+        </details>
+      </div>
+    </section>
+  </Container>
+</BaseLayout>
+
+<script>
+  import { calculateBellCurve } from '../../lib/bellCurve';
+  import { formatCurveValue, parseBatchScores } from '../../lib/squareRootCurve';
+
+  const scoresInput = document.querySelector<HTMLTextAreaElement>('#bell-scores');
+  const targetMeanInput = document.querySelector<HTMLInputElement>('#bell-target-mean');
+  const targetSdInput = document.querySelector<HTMLInputElement>('#bell-target-sd');
+  const capInput = document.querySelector<HTMLInputElement>('#bell-cap');
+  const errors = document.querySelector<HTMLElement>('#bell-errors');
+  const empty = document.querySelector<HTMLElement>('#bell-empty');
+  const output = document.querySelector<HTMLElement>('#bell-output');
+  const countOutput = document.querySelector<HTMLElement>('#bell-count');
+  const meanOutput = document.querySelector<HTMLElement>('#bell-mean');
+  const sdOutput = document.querySelector<HTMLElement>('#bell-sd');
+  const cappedOutput = document.querySelector<HTMLElement>('#bell-capped');
+  const resultsBody = document.querySelector<HTMLTableSectionElement>('#bell-results-body');
+  const copyButton = document.querySelector<HTMLButtonElement>('.copy-bell-results');
+  const clearButton = document.querySelector<HTMLButtonElement>('.clear-bell-results');
+  const status = document.querySelector<HTMLElement>('#bell-status');
+
+  let currentRows: ReturnType<typeof calculateBellCurve>['results'] = [];
+
+  const formatChange = (value: number) => {
+    const label = formatCurveValue(value);
+    return value > 0 ? `+${label}` : label;
+  };
+
+  const render = () => {
+    if (
+      !scoresInput ||
+      !targetMeanInput ||
+      !targetSdInput ||
+      !capInput ||
+      !errors ||
+      !empty ||
+      !output ||
+      !countOutput ||
+      !meanOutput ||
+      !sdOutput ||
+      !cappedOutput ||
+      !resultsBody ||
+      !copyButton ||
+      !status
+    ) return;
+
+    const parsed = parseBatchScores(scoresInput.value);
+    const targetMean =
+      targetMeanInput.value.trim() === '' ? Number.NaN : Number(targetMeanInput.value);
+    const targetStandardDeviation =
+      targetSdInput.value.trim() === '' ? Number.NaN : Number(targetSdInput.value);
+
+    scoresInput.setAttribute('aria-invalid', String(parsed.errors.length > 0));
+    status.textContent = '';
+
+    if (parsed.errors.length > 0) {
+      const examples = parsed.errors.slice(0, 4).map((error) => `"${error.token}"`).join(', ');
+      errors.textContent = `${parsed.errors.length} invalid ${parsed.errors.length === 1 ? 'value' : 'values'}: ${examples}. Use percentages from 0 to 100.`;
+    } else {
+      errors.textContent = '';
+    }
+
+    if (parsed.scores.length < 2) {
+      currentRows = [];
+      empty.hidden = false;
+      output.hidden = true;
+      copyButton.disabled = true;
+      resultsBody.replaceChildren();
+      if (parsed.scores.length > 0 && parsed.errors.length === 0) {
+        errors.textContent = 'Enter at least two class scores.';
+      }
+      return;
+    }
+
+    try {
+      const data = calculateBellCurve(parsed.scores, {
+        targetMean,
+        targetStandardDeviation,
+        capToPercentageRange: capInput.checked,
+      });
+
+      currentRows = data.results;
+      empty.hidden = true;
+      output.hidden = false;
+      copyButton.disabled = false;
+
+      countOutput.textContent = String(data.summary.count);
+      meanOutput.textContent = `${formatCurveValue(data.summary.rawMean)}% → ${formatCurveValue(data.summary.adjustedMean)}%`;
+      sdOutput.textContent = `${formatCurveValue(data.summary.rawStandardDeviation)} → ${formatCurveValue(data.summary.adjustedStandardDeviation)}`;
+      cappedOutput.textContent = String(data.summary.cappedCount);
+
+      const fragment = document.createDocumentFragment();
+      data.results.forEach((result, index) => {
+        const row = document.createElement('tr');
+
+        const position = document.createElement('th');
+        position.scope = 'row';
+        position.textContent = String(index + 1);
+
+        const raw = document.createElement('td');
+        raw.textContent = `${formatCurveValue(result.raw)}%`;
+
+        const zScore = document.createElement('td');
+        zScore.textContent = result.zScore.toFixed(2);
+
+        const adjusted = document.createElement('td');
+        adjusted.textContent = `${formatCurveValue(result.adjusted)}%`;
+
+        const change = document.createElement('td');
+        change.textContent = formatChange(result.change);
+
+        row.append(position, raw, zScore, adjusted, change);
+        fragment.append(row);
+      });
+      resultsBody.replaceChildren(fragment);
+
+      if (data.summary.cappedCount > 0) {
+        status.textContent = `${data.summary.cappedCount} adjusted ${data.summary.cappedCount === 1 ? 'score was' : 'scores were'} capped at the 0–100% range.`;
+      }
+    } catch (error) {
+      currentRows = [];
+      empty.hidden = false;
+      output.hidden = true;
+      copyButton.disabled = true;
+      resultsBody.replaceChildren();
+      errors.textContent = error instanceof Error ? error.message : 'Unable to calculate this bell curve.';
+    }
+  };
+
+  const copyResults = async () => {
+    if (!status || currentRows.length === 0) return;
+
+    const text = [
+      ['Raw Score', 'z-score', 'Adjusted Score', 'Change'],
+      ...currentRows.map((result) => [
+        formatCurveValue(result.raw),
+        result.zScore.toFixed(4),
+        formatCurveValue(result.adjusted),
+        formatCurveValue(result.change),
+      ]),
+    ].map((row) => row.join('\t')).join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+      status.textContent = 'Bell curve results copied.';
+    } catch {
+      status.textContent = 'Unable to copy results.';
+    }
+  };
+
+  scoresInput?.addEventListener('input', render);
+  targetMeanInput?.addEventListener('input', render);
+  targetSdInput?.addEventListener('input', render);
+  capInput?.addEventListener('change', render);
+  copyButton?.addEventListener('click', copyResults);
+  clearButton?.addEventListener('click', () => {
+    if (!scoresInput) return;
+    scoresInput.value = '';
+    render();
+    scoresInput.focus();
+  });
+
+  render();
+</script>
+
+<style>
+  .authority-page {
+    padding-block: clamp(2.75rem, 5vw, 5rem) var(--space-7);
+  }
+
+  .authority-opening {
+    max-width: 54rem;
+  }
+
+  .authority-lede {
+    max-width: 48rem;
+    margin-top: var(--space-4);
+    color: var(--ink-muted);
+    font-family: var(--font-editorial);
+    font-size: var(--text-lede);
+    line-height: 1.55;
+  }
+
+  .bell-workbench {
+    margin-top: clamp(2rem, 5vw, 3.5rem);
+    border-block: var(--border-width) solid var(--ink);
+    background: color-mix(in srgb, var(--surface) 48%, transparent);
+    scroll-margin-top: var(--space-5);
+  }
+
+  .bell-heading {
+    min-height: 3.25rem;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    border-bottom: var(--border-width) solid var(--rule);
+  }
+
+  .bell-heading span,
+  .bell-heading h2 {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .bell-heading span {
+    color: var(--pencil-red);
+  }
+
+  .bell-grid {
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
+  }
+
+  .bell-controls,
+  .bell-results {
+    min-width: 0;
+    padding: clamp(1.25rem, 3.5vw, 3rem);
+  }
+
+  .bell-results {
+    border-left: var(--border-width) solid var(--ink);
+  }
+
+  .bell-controls > label,
+  .bell-parameters label {
+    display: block;
+    font-weight: 600;
+  }
+
+  .field-help {
+    margin-top: var(--space-1);
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  #bell-scores {
+    width: 100%;
+    min-height: 15rem;
+    margin: var(--space-3) 0 var(--space-4);
+    padding: var(--space-3);
+    resize: vertical;
+    border: var(--border-width) solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.55;
+  }
+
+  .bell-parameters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .parameter-line {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .parameter-line input {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.9rem;
+    padding: 0.55rem 0.7rem;
+    border: var(--border-width) solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--academic-blue);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .parameter-line span {
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  #bell-scores:focus-visible,
+  .parameter-line input:focus-visible {
+    border-color: var(--academic-blue);
+    outline: 2px solid var(--academic-blue);
+    outline-offset: 2px;
+  }
+
+  #bell-scores[aria-invalid="true"] {
+    border-color: var(--pencil-red);
+  }
+
+  .cap-option {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    padding-block: var(--space-3);
+    border-block: var(--border-width) solid var(--rule);
+    cursor: pointer;
+  }
+
+  .cap-option input {
+    margin-top: 0.3rem;
+    accent-color: var(--academic-blue);
+  }
+
+  .cap-option strong,
+  .cap-option small {
+    display: block;
+  }
+
+  .cap-option small {
+    margin-top: 0.15rem;
+    color: var(--ink-muted);
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  .bell-errors {
+    min-height: 3em;
+    margin-top: var(--space-3);
+    color: var(--pencil-red);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .bell-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .copy-bell-results,
+  .clear-bell-results {
+    min-height: 2.75rem;
+    padding: 0.65rem 0.9rem;
+    border: var(--border-width) solid var(--academic-blue);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .copy-bell-results {
+    background: var(--academic-blue);
+    color: var(--surface);
+  }
+
+  .copy-bell-results:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .clear-bell-results {
+    background: transparent;
+    color: var(--academic-blue);
+  }
+
+  .bell-status {
+    flex-basis: 100%;
+    min-height: 1.5em;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .bell-empty {
+    min-height: 20rem;
+    display: grid;
+    place-items: center;
+    color: var(--ink-muted);
+    font-family: var(--font-editorial);
+    font-size: 1.125rem;
+    text-align: center;
+  }
+
+  .bell-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0 0 var(--space-4);
+    border-block: var(--border-width) solid var(--rule);
+  }
+
+  .bell-summary > div {
+    min-width: 0;
+    padding: var(--space-3);
+  }
+
+  .bell-summary > div:nth-child(even) {
+    border-left: var(--border-width) solid var(--rule);
+  }
+
+  .bell-summary > div:nth-child(n + 3) {
+    border-top: var(--border-width) solid var(--rule);
+  }
+
+  .bell-summary dt {
+    color: var(--ink-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .bell-summary dd {
+    margin: var(--space-1) 0 0;
+    color: var(--academic-blue);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  .bell-table-scroll,
+  .reference-table-scroll {
+    max-width: 100%;
+    overflow: auto;
+  }
+
+  .bell-table,
+  .reference-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bell-table {
+    min-width: 36rem;
+    font-family: var(--font-mono);
+  }
+
+  .bell-table thead,
+  .reference-table thead {
+    border-block: var(--border-width) solid var(--ink);
+  }
+
+  .bell-table th,
+  .bell-table td,
+  .reference-table th,
+  .reference-table td {
+    padding: 0.7rem var(--space-3);
+    border-bottom: var(--border-width) solid var(--rule);
+    text-align: right;
+  }
+
+  .bell-table th:first-child,
+  .bell-table tbody th,
+  .reference-table th:first-child {
+    text-align: left;
+  }
+
+  .bell-table thead th,
+  .reference-table thead th {
+    color: var(--ink-muted);
+    font-family: var(--font-interface);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+  }
+
+  .bell-table tbody th {
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+
+  .bell-table tbody td:nth-child(4) {
+    color: var(--academic-blue);
+    font-weight: 600;
+  }
+
+  .authority-section {
+    padding-top: var(--space-7);
+  }
+
+  .authority-section-heading {
+    max-width: 54rem;
+    padding-bottom: var(--space-5);
+    border-bottom: var(--border-width) solid var(--ink);
+  }
+
+  .authority-section-heading h2,
+  .curve-distinction h2 {
+    font-family: var(--font-editorial);
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+  }
+
+  .authority-section-heading > p {
+    margin-top: var(--space-3);
+    color: var(--ink-muted);
+  }
+
+  .bell-formula-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: var(--border-width) solid var(--ink);
+  }
+
+  .bell-formula-grid article {
+    min-width: 0;
+    padding: var(--space-5) clamp(1rem, 3vw, 2rem);
+  }
+
+  .bell-formula-grid article + article {
+    border-left: var(--border-width) solid var(--rule);
+  }
+
+  .bell-formula-grid h3 {
+    font-family: var(--font-editorial);
+    font-size: clamp(1.3rem, 2.5vw, 1.75rem);
+    line-height: 1.15;
+  }
+
+  .bell-formula-grid p:not(.method-label) {
+    margin-top: var(--space-2);
+    color: var(--ink-muted);
+  }
+
+  .bell-formula-grid code {
+    display: block;
+    margin-top: var(--space-4);
+    color: var(--academic-blue);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+  }
+
+  .curve-distinction {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.85fr) minmax(0, 1.15fr);
+    align-items: start;
+    gap: var(--space-6);
+    margin-top: var(--space-7);
+    padding-block: var(--space-5);
+    border-block: var(--border-width) solid var(--ink);
+  }
+
+  .curve-distinction > p,
+  .worked-note,
+  .comparison-copy {
+    color: var(--ink-muted);
+  }
+
+  .worked-note {
+    max-width: 48rem;
+    margin-top: var(--space-4);
+  }
+
+  .comparison-copy {
+    max-width: 50rem;
+    margin-top: var(--space-5);
+  }
+
+  .comparison-copy p + p {
+    margin-top: var(--space-3);
+  }
+
+  .reference-link {
+    color: var(--academic-blue);
+    font-weight: 600;
+  }
+
+  .faq-list {
+    margin-top: var(--space-5);
+  }
+
+  .faq-list details {
+    border-bottom: var(--border-width) solid var(--rule);
+  }
+
+  .faq-list summary {
+    padding: var(--space-4) var(--space-2);
+    font-family: var(--font-editorial);
+    font-size: clamp(1.125rem, 2vw, 1.35rem);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .faq-list details > p {
+    max-width: 50rem;
+    padding: 0 var(--space-5) var(--space-4);
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 62rem) {
+    .bell-grid,
+    .curve-distinction {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bell-results {
+      border-top: var(--border-width) solid var(--ink);
+      border-left: 0;
+    }
+
+    .bell-formula-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bell-formula-grid article + article {
+      border-top: var(--border-width) solid var(--rule);
+      border-left: 0;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .bell-parameters {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bell-summary {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bell-summary > div:nth-child(even) {
+      border-left: 0;
+    }
+
+    .bell-summary > div + div {
+      border-top: var(--border-width) solid var(--rule);
+    }
+  }
+</style>
