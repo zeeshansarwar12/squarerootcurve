@@ -11,7 +11,7 @@ import {
 } from '../../lib/squareRootCurve';
 
 const canonical = 'https://squarerootcurve.com/grade-curve-calculator/';
-const title = 'Grade Curve Calculator — Compare Curving Methods | SquareRootCurve.com';
+const title = 'Grade Curve Calculator for Classes | SquareRootCurve.com';
 const description =
   'Compare common grade-curving methods for one score or a whole class, including square root, flat points, scale-to-highest and target-average adjustments.';
 const initialRaw = 72;
@@ -245,6 +245,18 @@ const structuredData = {
           <p><strong>Formula</strong> <code>result = raw + (100 − highest score)</code></p>
           <p><strong>Example</strong> <code>72 + (100 − 90) = 82%</code></p>
           <p><strong>Parameter</strong> Highest score in class</p>
+        </article>
+
+        <article>
+          <p class="method-label">Target average</p>
+          <h3>Shift the class toward a chosen average</h3>
+          <p>
+            The whole-class calculator finds the difference between the current class average
+            and the target average, then applies that same offset to every score.
+          </p>
+          <p><strong>Formula</strong> <code>result = raw + (target average − class average)</code></p>
+          <p><strong>Limit</strong> Results are kept between 0% and 100%, so clipping can prevent the final average from exactly matching the target.</p>
+          <p><strong>Parameter</strong> Target class average</p>
         </article>
       </div>
     </section>
