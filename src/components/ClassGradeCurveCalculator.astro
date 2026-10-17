@@ -1,0 +1,596 @@
+---
+---
+
+<section id="class-calculator" class="class-curve-workbench" aria-labelledby="class-curve-title">
+  <header class="class-curve-heading">
+    <p class="eyebrow">Whole-class calculator</p>
+    <h2 id="class-curve-title">Curve a full class at once</h2>
+    <p>
+      Paste percentages for an entire class, choose a grading method, and compare the class
+      distribution before and after the adjustment.
+    </p>
+  </header>
+
+  <form id="class-curve-form" novalidate>
+    <div class="class-curve-grid">
+      <div class="class-curve-controls">
+        <label for="class-curve-scores">Class scores</label>
+        <p id="class-curve-help" class="field-help">Separate scores with commas, spaces, or new lines.</p>
+        <textarea
+          id="class-curve-scores"
+          name="class-curve-scores"
+          rows="10"
+          aria-describedby="class-curve-help class-curve-errors"
+          aria-invalid="false"
+        >55
+67
+73
+81
+92</textarea>
+
+        <label for="class-curve-method">Curving method</label>
+        <select id="class-curve-method" name="class-curve-method">
+          <option value="square-root">Square root curve</option>
+          <option value="flat-points">Add flat points</option>
+          <option value="scale-highest">Scale highest score to 100</option>
+          <option value="top-score-gap">Add top-score gap</option>
+          <option value="target-average">Shift to target average</option>
+        </select>
+
+        <div class="method-parameter" data-method-parameter="flat-points" hidden>
+          <label for="class-curve-points">Points to add</label>
+          <input id="class-curve-points" type="number" min="0" step="0.1" value="5" inputmode="decimal" />
+        </div>
+
+        <div class="method-parameter" data-method-parameter="target-average" hidden>
+          <label for="class-curve-target">Target class average</label>
+          <div class="parameter-with-unit">
+            <input id="class-curve-target" type="number" min="0" max="100" step="0.1" value="80" inputmode="decimal" />
+            <span aria-hidden="true">%</span>
+          </div>
+        </div>
+
+        <p id="class-method-note" class="method-note">
+          Applies the square root transformation to each score independently.
+        </p>
+        <p id="class-curve-errors" class="class-curve-errors" aria-live="polite"></p>
+
+        <div class="class-curve-actions">
+          <button type="button" class="copy-class-results">Copy results</button>
+          <button type="button" class="clear-class-results">Clear</button>
+          <p id="class-curve-status" class="class-curve-status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="class-curve-results">
+        <div id="class-curve-empty" class="class-curve-empty" hidden>
+          Enter at least one valid score to calculate class results.
+        </div>
+
+        <div id="class-curve-output">
+          <dl class="class-statistics">
+            <div>
+              <dt>Students</dt>
+              <dd id="class-stat-count">5</dd>
+            </div>
+            <div>
+              <dt>Average</dt>
+              <dd id="class-stat-average">—</dd>
+            </div>
+            <div>
+              <dt>Median</dt>
+              <dd id="class-stat-median">—</dd>
+            </div>
+            <div>
+              <dt>Lowest</dt>
+              <dd id="class-stat-lowest">—</dd>
+            </div>
+            <div>
+              <dt>Highest</dt>
+              <dd id="class-stat-highest">—</dd>
+            </div>
+          </dl>
+
+          <div class="class-curve-table-scroll" tabindex="0" aria-label="Whole-class grade curve results">
+            <table class="class-curve-table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Raw</th>
+                  <th scope="col">Adjusted</th>
+                  <th scope="col">Change</th>
+                </tr>
+              </thead>
+              <tbody id="class-curve-results-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</section>
+
+<script>
+  import {
+    calculateClassGradeCurve,
+    formatCurveValue,
+    parseBatchScores,
+    type GradeCurveMethod,
+  } from '../lib/squareRootCurve';
+
+  const scoresInput = document.querySelector<HTMLTextAreaElement>('#class-curve-scores');
+  const methodInput = document.querySelector<HTMLSelectElement>('#class-curve-method');
+  const pointsInput = document.querySelector<HTMLInputElement>('#class-curve-points');
+  const targetInput = document.querySelector<HTMLInputElement>('#class-curve-target');
+  const errors = document.querySelector<HTMLElement>('#class-curve-errors');
+  const methodNote = document.querySelector<HTMLElement>('#class-method-note');
+  const emptyState = document.querySelector<HTMLElement>('#class-curve-empty');
+  const output = document.querySelector<HTMLElement>('#class-curve-output');
+  const countOutput = document.querySelector<HTMLElement>('#class-stat-count');
+  const averageOutput = document.querySelector<HTMLElement>('#class-stat-average');
+  const medianOutput = document.querySelector<HTMLElement>('#class-stat-median');
+  const lowestOutput = document.querySelector<HTMLElement>('#class-stat-lowest');
+  const highestOutput = document.querySelector<HTMLElement>('#class-stat-highest');
+  const resultsBody = document.querySelector<HTMLTableSectionElement>('#class-curve-results-body');
+  const copyButton = document.querySelector<HTMLButtonElement>('.copy-class-results');
+  const clearButton = document.querySelector<HTMLButtonElement>('.clear-class-results');
+  const status = document.querySelector<HTMLElement>('#class-curve-status');
+
+  const methodNotes: Record<GradeCurveMethod, string> = {
+    'square-root': 'Applies 10 × √raw to each score independently.',
+    'flat-points': 'Adds the same number of points to each score, capped at 100%.',
+    'scale-highest': 'Scales every score proportionally so the highest observed score becomes 100%.',
+    'top-score-gap': 'Adds the gap between the highest observed score and 100 to every score, capped at 100%.',
+    'target-average': 'Adds the same offset to every score to move the class average toward the target. Scores remain between 0% and 100%.',
+  };
+
+  const formatPair = (raw: number, adjusted: number) =>
+    `${formatCurveValue(raw)}% → ${formatCurveValue(adjusted)}%`;
+
+  const formatChange = (value: number) => {
+    const label = formatCurveValue(value);
+    return value > 0 ? `+${label}` : label;
+  };
+
+  const formatBatchErrors = (batchErrors: ReturnType<typeof parseBatchScores>['errors']) => {
+    if (batchErrors.length === 0) return '';
+    const examples = batchErrors.slice(0, 4).map((error) => `"${error.token}"`).join(', ');
+    const remaining = batchErrors.length > 4 ? ` and ${batchErrors.length - 4} more` : '';
+    return `${batchErrors.length} invalid ${batchErrors.length === 1 ? 'value' : 'values'}: ${examples}${remaining}. Use percentages from 0 to 100.`;
+  };
+
+  let currentRows: Array<{ raw: number; adjusted: number; change: number }> = [];
+
+  const updateParameterVisibility = (method: GradeCurveMethod) => {
+    document.querySelectorAll<HTMLElement>('[data-method-parameter]').forEach((element) => {
+      element.hidden = element.dataset.methodParameter !== method;
+    });
+    if (methodNote) methodNote.textContent = methodNotes[method];
+  };
+
+  const render = () => {
+    if (
+      !scoresInput ||
+      !methodInput ||
+      !pointsInput ||
+      !targetInput ||
+      !errors ||
+      !emptyState ||
+      !output ||
+      !countOutput ||
+      !averageOutput ||
+      !medianOutput ||
+      !lowestOutput ||
+      !highestOutput ||
+      !resultsBody ||
+      !copyButton ||
+      !status
+    ) return;
+
+    const parsed = parseBatchScores(scoresInput.value);
+    const method = methodInput.value as GradeCurveMethod;
+    updateParameterVisibility(method);
+
+    errors.textContent = formatBatchErrors(parsed.errors);
+    scoresInput.setAttribute('aria-invalid', String(parsed.errors.length > 0));
+    status.textContent = '';
+
+    if (parsed.scores.length === 0) {
+      currentRows = [];
+      emptyState.hidden = false;
+      output.hidden = true;
+      copyButton.disabled = true;
+      resultsBody.replaceChildren();
+      return;
+    }
+
+    const options = {
+      points: pointsInput.value.trim() === '' ? Number.NaN : Number(pointsInput.value),
+      targetAverage: targetInput.value.trim() === '' ? Number.NaN : Number(targetInput.value),
+    };
+
+    try {
+      const data = calculateClassGradeCurve(parsed.scores, method, options);
+      currentRows = data.results;
+      emptyState.hidden = true;
+      output.hidden = false;
+      copyButton.disabled = false;
+
+      countOutput.textContent = String(data.summary.count);
+      averageOutput.textContent = formatPair(data.summary.rawAverage, data.summary.adjustedAverage);
+      medianOutput.textContent = formatPair(data.summary.rawMedian, data.summary.adjustedMedian);
+      lowestOutput.textContent = formatPair(data.summary.rawLowest, data.summary.adjustedLowest);
+      highestOutput.textContent = formatPair(data.summary.rawHighest, data.summary.adjustedHighest);
+
+      const fragment = document.createDocumentFragment();
+      data.results.forEach((rowData, index) => {
+        const row = document.createElement('tr');
+
+        const position = document.createElement('th');
+        position.scope = 'row';
+        position.textContent = String(index + 1);
+
+        const raw = document.createElement('td');
+        raw.textContent = `${formatCurveValue(rowData.raw)}%`;
+
+        const adjusted = document.createElement('td');
+        adjusted.textContent = `${formatCurveValue(rowData.adjusted)}%`;
+
+        const change = document.createElement('td');
+        change.textContent = formatChange(rowData.change);
+
+        row.append(position, raw, adjusted, change);
+        fragment.append(row);
+      });
+      resultsBody.replaceChildren(fragment);
+    } catch (error) {
+      currentRows = [];
+      emptyState.hidden = false;
+      output.hidden = true;
+      copyButton.disabled = true;
+      resultsBody.replaceChildren();
+      errors.textContent = error instanceof Error ? error.message : 'Unable to calculate this class.';
+    }
+  };
+
+  const copyResults = async () => {
+    if (!methodInput || !status || currentRows.length === 0) return;
+    const header = ['Raw Score', 'Adjusted Score', 'Change'];
+    const rows = currentRows.map((row) => [
+      formatCurveValue(row.raw),
+      formatCurveValue(row.adjusted),
+      formatCurveValue(row.change),
+    ]);
+    const text = [
+      [`Method: ${methodInput.options[methodInput.selectedIndex]?.text ?? methodInput.value}`],
+      header,
+      ...rows,
+    ].map((row) => row.join('\t')).join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+      status.textContent = 'Class results copied.';
+    } catch {
+      status.textContent = 'Unable to copy results.';
+    }
+  };
+
+  scoresInput?.addEventListener('input', render);
+  methodInput?.addEventListener('change', render);
+  pointsInput?.addEventListener('input', render);
+  targetInput?.addEventListener('input', render);
+  copyButton?.addEventListener('click', copyResults);
+  clearButton?.addEventListener('click', () => {
+    if (!scoresInput) return;
+    scoresInput.value = '';
+    render();
+    scoresInput.focus();
+  });
+
+  render();
+</script>
+
+<style>
+  .class-curve-workbench {
+    margin-top: var(--space-7);
+    padding-top: var(--space-6);
+    border-top: var(--border-width) solid var(--ink);
+    scroll-margin-top: var(--space-5);
+  }
+
+  .class-curve-heading {
+    max-width: 54rem;
+  }
+
+  .class-curve-heading h2 {
+    font-family: var(--font-editorial);
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+  }
+
+  .class-curve-heading > p:last-child {
+    max-width: 47rem;
+    margin-top: var(--space-3);
+    color: var(--ink-muted);
+  }
+
+  .class-curve-grid {
+    display: grid;
+    grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1.28fr);
+    margin-top: var(--space-5);
+    border-block: var(--border-width) solid var(--ink);
+    background: color-mix(in srgb, var(--surface) 48%, transparent);
+  }
+
+  .class-curve-controls,
+  .class-curve-results {
+    min-width: 0;
+    padding: clamp(1.25rem, 3.5vw, 3rem);
+  }
+
+  .class-curve-results {
+    border-left: var(--border-width) solid var(--ink);
+  }
+
+  .class-curve-controls > label,
+  .method-parameter > label {
+    display: block;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .field-help,
+  .method-note {
+    margin-top: var(--space-1);
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  #class-curve-scores,
+  #class-curve-method,
+  .method-parameter input {
+    width: 100%;
+    border: var(--border-width) solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  #class-curve-scores {
+    min-height: 15rem;
+    margin: var(--space-3) 0 var(--space-4);
+    padding: var(--space-3);
+    resize: vertical;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.55;
+  }
+
+  #class-curve-method,
+  .method-parameter input {
+    min-height: 2.9rem;
+    margin-top: var(--space-2);
+    padding: 0.55rem 0.7rem;
+  }
+
+  .method-parameter {
+    margin-top: var(--space-4);
+  }
+
+  .parameter-with-unit {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .parameter-with-unit span {
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+  }
+
+  #class-curve-scores:focus-visible,
+  #class-curve-method:focus-visible,
+  .method-parameter input:focus-visible {
+    border-color: var(--academic-blue);
+    outline: 2px solid var(--academic-blue);
+    outline-offset: 2px;
+  }
+
+  #class-curve-scores[aria-invalid="true"] {
+    border-color: var(--pencil-red);
+  }
+
+  .method-note {
+    min-height: 3.1em;
+    margin-top: var(--space-3);
+    line-height: 1.5;
+  }
+
+  .class-curve-errors {
+    min-height: 3em;
+    margin-top: var(--space-2);
+    color: var(--pencil-red);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .class-curve-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+  }
+
+  .copy-class-results,
+  .clear-class-results {
+    min-height: 2.75rem;
+    padding: 0.65rem 0.9rem;
+    border: var(--border-width) solid var(--academic-blue);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .copy-class-results {
+    background: var(--academic-blue);
+    color: var(--surface);
+  }
+
+  .copy-class-results:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: var(--ink);
+  }
+
+  .copy-class-results:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .clear-class-results {
+    background: transparent;
+    color: var(--academic-blue);
+  }
+
+  .clear-class-results:hover {
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  .class-curve-status {
+    flex-basis: 100%;
+    min-height: 1.5em;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .class-curve-empty {
+    min-height: 20rem;
+    display: grid;
+    place-items: center;
+    color: var(--ink-muted);
+    font-family: var(--font-editorial);
+    font-size: 1.125rem;
+    text-align: center;
+  }
+
+  .class-statistics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin: 0 0 var(--space-4);
+    border-block: var(--border-width) solid var(--rule);
+  }
+
+  .class-statistics > div {
+    min-width: 0;
+    padding: var(--space-3);
+  }
+
+  .class-statistics > div + div {
+    border-left: var(--border-width) solid var(--rule);
+  }
+
+  .class-statistics dt {
+    color: var(--ink-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .class-statistics dd {
+    margin: var(--space-1) 0 0;
+    color: var(--academic-blue);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  .class-curve-table-scroll {
+    max-height: 34rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .class-curve-table {
+    width: 100%;
+    min-width: 31rem;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .class-curve-table thead {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    background: var(--paper);
+  }
+
+  .class-curve-table th,
+  .class-curve-table td {
+    height: 2.4rem;
+    padding: 0.45rem var(--space-3);
+    border-bottom: var(--border-width) solid var(--rule);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .class-curve-table th {
+    color: var(--ink-muted);
+    font-family: var(--font-interface);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+  }
+
+  .class-curve-table th:first-child,
+  .class-curve-table tbody th {
+    width: 3.5rem;
+    text-align: left;
+  }
+
+  .class-curve-table tbody th {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .class-curve-table tbody td:nth-child(3) {
+    color: var(--academic-blue);
+    font-weight: 600;
+  }
+
+  @media (max-width: 62rem) {
+    .class-curve-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .class-curve-results {
+      border-top: var(--border-width) solid var(--ink);
+      border-left: 0;
+    }
+
+    .class-statistics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .class-statistics > div + div {
+      border-left: 0;
+    }
+
+    .class-statistics > div:nth-child(even) {
+      border-left: var(--border-width) solid var(--rule);
+    }
+
+    .class-statistics > div:nth-child(n + 3) {
+      border-top: var(--border-width) solid var(--rule);
+    }
+  }
+</style>
