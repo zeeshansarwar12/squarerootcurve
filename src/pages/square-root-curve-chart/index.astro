@@ -1,6 +1,7 @@
 ---
 import Container from '../../components/Container.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ScoreReference from '../../components/ScoreReference.astro';
 import { formatCurveValue, generateSquareRootCurveChart } from '../../lib/squareRootCurve';
 
 const canonical = 'https://squarerootcurve.com/square-root-curve-chart/';
@@ -12,19 +13,29 @@ const desktopGroups = Array.from({ length: 3 }, (_, groupIndex) =>
 const perfectSquares = new Set([0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100]);
 const structuredData = {
   '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  '@id': `${canonical}#webpage`,
-  url: canonical,
-  name: 'Square Root Curve Chart (0–100 Scores)',
-  description: 'A complete printable square root curve chart for raw scores from 0 through 100.',
-  isPartOf: { '@id': 'https://squarerootcurve.com/#website' },
-  inLanguage: 'en',
+  '@graph': [{
+    '@type': 'WebPage',
+    '@id': `${canonical}#webpage`,
+    url: canonical,
+    name: 'Square Root Curve Table (0–100)',
+    description: 'Search the 0–100 square root curve table, calculate a score and print the complete chart.',
+    breadcrumb: { '@id': `${canonical}#breadcrumb` },
+    isPartOf: { '@id': 'https://squarerootcurve.com/#website' },
+    inLanguage: 'en',
+  }, {
+    '@type': 'BreadcrumbList',
+    '@id': `${canonical}#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://squarerootcurve.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Square Root Curve Table', item: canonical },
+    ],
+  }],
 };
 ---
 
 <BaseLayout
-  title="Square Root Curve Chart (0–100 Scores) | SquareRootCurve.com"
-  description="Look up every square root curved grade from 0 through 100 in a complete printable reference chart."
+  title="Square Root Curve Table & Chart (0–100) | SquareRootCurve.com"
+  description="Find any score in the 0–100 square root curve table. Filter original grades, calculate curved results, explore examples and print the complete chart."
   canonical={canonical}
   structuredData={structuredData}
   navigationItems={[
@@ -35,9 +46,11 @@ const structuredData = {
 >
   <Container class="opening">
     <header class="opening-copy">
+      <nav aria-label="Breadcrumb"><a href="/">Home</a> / <span aria-current="page">Square Root Curve Table</span></nav>
       <p class="eyebrow">Grading reference</p>
-      <h1>Square Root Curve Chart</h1>
-      <p class="lede">Look up the curved grade for any raw percentage score from 0 through 100.</p>
+      <h1>Square Root Curve Table (0–100)</h1>
+      <p class="lede">Square root grading converts an original percentage to a curved grade using 10 × √score. Look up every whole-number score, calculate decimals, or print the complete chart.</p>
+      <p><a class="reference-link" href="/#calculator">Open the Square Root Curve Calculator</a> or <a class="reference-link" href="#chart">view the printable Square Root Curve Chart</a>.</p>
     </header>
 
     <section id="chart" class="chart-section" aria-labelledby="chart-title">
@@ -64,6 +77,8 @@ const structuredData = {
           </p>
         </div>
       </div>
+
+      <ScoreReference />
 
       <div class="print-heading" aria-hidden="true">
         <div class="print-brand">
@@ -119,32 +134,38 @@ const structuredData = {
         </table>
       </div>
 
-      <div class="chart-table chart-table-mobile">
-        <table>
-          <caption class="sr-only">
-            Square root curved grades for raw scores from 0 through 100.
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Raw score</th>
-              <th scope="col">Curved score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {chartEntries.map((entry) => (
-              <tr class:list={{ 'is-anchor': perfectSquares.has(entry.raw) }}>
-                <th scope="row">{entry.raw}</th>
-                <td>{formatCurveValue(entry.curved)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
       <footer class="print-footer" aria-hidden="true">
         <p>SquareRootCurve.com</p>
         <p>Values rounded to one decimal place where needed.</p>
       </footer>
+    </section>
+
+    <section class="formula-reference-section reference-section" aria-labelledby="table-formula-title">
+      <header class="reference-heading">
+        <h2 id="table-formula-title">How to calculate a square root curved score</h2>
+      </header>
+      <p class="calculation-line">Curved Score = 10 × √(Original Score)</p>
+      <p>Use an original score on a 0–100 percentage scale. Take its square root, then multiply by 10. Results below are rounded to the nearest tenth; calculations keep full precision. For a test out of another total, convert earned points to a percentage first.</p>
+      <div class="formula-methods">
+        {[66, 72, 77, 86].map((raw) => (
+          <article>
+            <h3>What is {raw} on a square root curve?</h3>
+            <p class="calculation-line">10 × √{raw} ≈ {formatCurveValue(chartEntries[raw].curved)}%</p>
+            <p>An original score of {raw}% becomes approximately {formatCurveValue(chartEntries[raw].curved)}%, a gain of {formatCurveValue(chartEntries[raw].curved - raw)} percentage points.</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="reference-section faq-section" aria-labelledby="table-faq-title">
+      <header class="reference-heading"><h2 id="table-faq-title">Square root curve table questions</h2></header>
+      <div class="faq-list">
+        <details><summary>How do I find my score in the table?</summary><p>Find your original percentage in the left column and read its curved percentage in the right column. Use the filter to narrow the whole-number rows, or enter a decimal in the score selector for a live result.</p></details>
+        <details><summary>Do 0 and 100 change?</summary><p>No. Zero stays 0% and 100 stays 100%. Scores between these endpoints increase under this formula.</p></details>
+        <details><summary>Why is my result different from my teacher’s grade?</summary><p>Your teacher may use a different curve or rounding policy. This table uses 10 × √score and displays up to one decimal place; confirm the grading policy before treating it as an official grade.</p></details>
+        <details><summary>Can I use points instead of a percentage?</summary><p>Convert points first: 36 out of 50 is 72%, which curves to approximately {formatCurveValue(chartEntries[72].curved)}%. The <a class="reference-link" href="/#points-calculator">points-based calculator</a> performs that conversion for you.</p></details>
+        <details><summary>How do I save or print the full table?</summary><p>Choose Print chart or Download PDF above. Both open your browser’s print dialog; select Save as PDF to download. The full 101-score chart prints even when the onscreen table is filtered.</p></details>
+      </div>
     </section>
 
     <section class="more-calculators" aria-labelledby="next-step-title">
@@ -154,11 +175,18 @@ const structuredData = {
         <p>
           Use the <a class="reference-link" href="/#calculator">Square Root Curve Calculator</a> for a live result,
           or review the <a class="reference-link" href="/#formula">formula and worked examples</a>.
+          To compare other methods, use the <a class="reference-link" href="/grade-curve-calculator/">Grade Curve Calculator</a>.
         </p>
       </header>
     </section>
   </Container>
 </BaseLayout>
+
+<style>
+  .chart-table-desktop { display: none; }
+  .opening-copy nav { margin-bottom: var(--space-3); font-size: var(--text-sm); }
+  .opening-copy > p:last-child { margin-top: var(--space-3); }
+</style>
 
 <script>
   document.querySelector<HTMLButtonElement>('.print-chart')?.addEventListener('click', () => window.print());

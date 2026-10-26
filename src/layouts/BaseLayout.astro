@@ -11,6 +11,7 @@ interface Props {
   title: string;
   description: string;
   canonical?: string | null;
+  noindex?: boolean;
   structuredData?: Record<string, unknown>;
   navigationItems?: NavigationItem[];
 }
@@ -19,6 +20,7 @@ const {
   title,
   description,
   canonical = 'https://squarerootcurve.com/',
+  noindex = false,
   structuredData,
   navigationItems = [
     { label: 'Calculator', href: '/#calculator' },
@@ -34,6 +36,7 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <meta name="generator" content={Astro.generator} />
     <meta name="msvalidate.01" content="ADA32A2FC73ADC93B80B1231531C0854" />
     <meta name="google-site-verification" content="YMYkOwhoBYQG4G-i7_XK2PIlgVY92vwkvNRn86SdKHA" />
