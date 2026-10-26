@@ -35,3 +35,7 @@ Schema, page expansion, and SEO features must be evidence-based and validated, n
 ## D009 — First supporting authority page
 
 `/grade-curve-calculator/` owns multi-method grade-curving comparison intent, while `/` remains the canonical owner of Square Root Curve intent. “Highest score to 100” methods must explicitly distinguish proportional scaling from adding the top-score gap.
+
+## D010 — One chart and table reference
+
+`/square-root-curve-chart/` owns the searchable 0–100 table, score lookup, worked score examples and printable chart. The 26 October 2026 SEO sprint extends this existing equivalent instead of creating `/square-root-curve-table/`. Keep its existing canonical; do not split the same lookup intent across duplicate routes.

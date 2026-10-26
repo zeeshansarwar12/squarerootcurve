@@ -48,7 +48,7 @@ Display boost as percentage points, not percent growth: `64 → 80` is `+16 perc
 
 ## Properties
 
-Within the valid raw range, `0 → 0`, `100 → 100`, intermediate values increase or remain equal, and ranking is preserved because the function is monotonic. Lower scores receive larger absolute boosts than scores near 100.
+Within the valid raw range, `0 → 0`, `100 → 100`, intermediate values increase or remain equal, and ranking is preserved because the function is monotonic. Absolute boost increases from zero at raw 0 to a maximum of 25 percentage points at raw 25, then decreases to zero at raw 100.
 
 Do not infer educational fairness or statistical validity from these mathematical properties.
 

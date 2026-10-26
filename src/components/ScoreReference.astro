@@ -1,0 +1,97 @@
+---
+import { formatCurveValue, generateSquareRootCurveChart } from '../lib/squareRootCurve';
+const entries = generateSquareRootCurveChart();
+---
+
+<div class="score-reference">
+  <div class="lookup-controls" hidden>
+    <div>
+      <label for="lookup-score">Original score (%)</label>
+      <input id="lookup-score" type="number" min="0" max="100" step="any" value="77"
+        inputmode="decimal" aria-describedby="lookup-help lookup-error" aria-invalid="false" />
+      <p id="lookup-help">Enter a percentage from 0 to 100, including decimals.</p>
+      <p id="lookup-error" class="input-error" aria-live="polite"></p>
+    </div>
+    <div>
+      <span>Curved score</span>
+      <output id="lookup-result" for="lookup-score" aria-live="polite">{formatCurveValue(entries[77].curved)}%</output>
+      <p id="lookup-formula">10 × √77 ≈ {formatCurveValue(entries[77].curved)}%</p>
+    </div>
+    <div>
+      <label for="table-filter">Filter by original score</label>
+      <input id="table-filter" type="search" inputmode="numeric" placeholder="e.g. 72" aria-describedby="filter-help" />
+      <p id="filter-help">Matches the original score text. Clear to show all scores.</p>
+      <p id="filter-status" role="status">101 scores shown.</p>
+    </div>
+  </div>
+  <div class="chart-table score-table" id="score-table">
+    <table>
+      <caption>Square root curve table: original and curved percentages, rounded to one decimal where needed.</caption>
+      <thead><tr><th scope="col">Original score (%)</th><th scope="col">Curved score (%)</th></tr></thead>
+      <tbody>
+        {entries.map(({ raw, curved }) => (
+          <tr data-raw={raw}><th scope="row">{raw}</th><td>{formatCurveValue(curved)}</td></tr>
+        ))}
+      </tbody>
+    </table>
+    <p id="filter-empty" hidden>No matching scores. Clear the filter to restore the complete table.</p>
+  </div>
+</div>
+
+<script>
+  import { calculateSquareRootCurve, formatCurveValue, parseRawScore } from '../lib/squareRootCurve';
+  const score = document.querySelector<HTMLInputElement>('#lookup-score')!;
+  const result = document.querySelector<HTMLOutputElement>('#lookup-result')!;
+  const formula = document.querySelector<HTMLElement>('#lookup-formula')!;
+  const error = document.querySelector<HTMLElement>('#lookup-error')!;
+  const filter = document.querySelector<HTMLInputElement>('#table-filter')!;
+  const status = document.querySelector<HTMLElement>('#filter-status')!;
+  const empty = document.querySelector<HTMLElement>('#filter-empty')!;
+  const rows = [...document.querySelectorAll<HTMLTableRowElement>('#score-table tbody tr')];
+  document.querySelector<HTMLElement>('.lookup-controls')!.hidden = false;
+
+  function updateScore() {
+    const parsed = parseRawScore(score.value);
+    score.setAttribute('aria-invalid', String(!parsed.valid));
+    error.textContent = parsed.valid ? '' : 'Enter a score from 0 to 100.';
+    result.textContent = parsed.valid ? `${formatCurveValue(calculateSquareRootCurve(parsed.value).curved)}%` : '—';
+    formula.textContent = parsed.valid
+      ? `10 × √${parsed.value} ≈ ${formatCurveValue(calculateSquareRootCurve(parsed.value).curved)}%` : '';
+    rows.forEach((row) => {
+      const current = parsed.valid && Number(row.dataset.raw) === parsed.value;
+      row.classList.toggle('selected-score', current);
+      if (current) row.setAttribute('aria-current', 'true');
+      else row.removeAttribute('aria-current');
+    });
+  }
+  function filterRows() {
+    const query = filter.value.trim();
+    let count = 0;
+    rows.forEach((row) => {
+      row.hidden = !row.dataset.raw!.includes(query);
+      if (!row.hidden) count++;
+    });
+    status.textContent = `${count} ${count === 1 ? 'score' : 'scores'} shown.`;
+    empty.hidden = count !== 0;
+  }
+  score.addEventListener('input', updateScore);
+  filter.addEventListener('input', filterRows);
+  updateScore();
+</script>
+
+<style>
+  .lookup-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); padding-block: var(--space-4); border-block: 1px solid var(--rule); }
+  [hidden] { display: none !important; }
+  .lookup-controls > div { min-width: 0; }
+  label { display: block; font-weight: 600; }
+  input { display: block; width: 100%; min-width: 0; min-height: 2.75rem; margin-block: var(--space-2); padding: var(--space-2); border: 1px solid var(--rule); border-radius: var(--radius-sm); color: var(--ink); background: var(--surface); }
+  output { display: block; color: var(--academic-blue); font-family: var(--font-mono); font-size: 2rem; }
+  p { font-size: var(--text-sm); overflow-wrap: anywhere; }
+  caption { padding-block: var(--space-3); text-align: left; color: var(--ink-muted); font-family: var(--font-interface); }
+  .score-table th:first-child { text-align: left; }
+  .score-table tbody th { font-weight: 400; }
+  .score-table :is(th, td) { width: 50%; }
+  .selected-score > * { background: var(--surface); font-weight: 600 !important; border-block: 2px solid var(--academic-blue); }
+  @media (max-width: 56rem) { .lookup-controls { grid-template-columns: minmax(0, 1fr); } }
+  @media print { .score-reference { display: none; } }
+</style>

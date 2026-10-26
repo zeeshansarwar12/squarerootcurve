@@ -42,6 +42,8 @@ Do not create thin keyword variants or programmatic score pages such as `/square
 
 Every indexable page needs a unique purpose. Do not index utility-state URLs; calculator query parameters must not create duplicate indexed pages.
 
+`/square-root-curve-chart/` is the combined table and printable-chart reference. It includes searchable scores and score-specific examples; do not create a second table page or individual score pages for the same intent. The homepage retains the primary calculator intent.
+
 Before adding structured data, verify current Google-supported documentation, describe only visible content accurately, and validate the output. Do not assume a calculator schema earns a rich result. FAQ content may serve users without promising FAQ rich-result eligibility.
 
 Use descriptive, natural internal-link anchors without aggressive exact-match repetition. The exact topical brand makes artificial keyword-rich anchors unnecessary.
