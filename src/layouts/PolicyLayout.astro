@@ -1,0 +1,24 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Container from '../components/Container.astro';
+interface Props { title: string; description: string; path: string; }
+const { title, description, path } = Astro.props;
+---
+<BaseLayout title={`${title} | SquareRootCurve.com`} description={description} canonical={`https://squarerootcurve.com${path}`}>
+  <Container class="policy-page">
+    <header>
+      <p class="eyebrow">Site information</p>
+      <h1>{title}</h1>
+      <p>Last updated: <time datetime="2026-10-28">28 October 2026</time></p>
+    </header>
+    <slot />
+  </Container>
+</BaseLayout>
+<style>
+  .policy-page { max-width: 58rem; padding-block: var(--space-6); }
+  header, :global(.policy-page section) { padding-bottom: var(--space-4); border-bottom: 1px solid var(--rule); }
+  :global(.policy-page section) { padding-top: var(--space-4); }
+  h1 { font-family: var(--font-editorial); font-size: clamp(2.5rem, 6vw, 4rem); line-height: 1.1; }
+  :global(.policy-page h2) { font-family: var(--font-editorial); font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.25; }
+  :global(.policy-page p) { margin-block: var(--space-3); overflow-wrap: anywhere; }
+</style>

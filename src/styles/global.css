@@ -563,6 +563,9 @@
   }
 
   .download-pdf {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
     background: var(--academic-blue);
     color: var(--surface);
   }
@@ -1592,6 +1595,8 @@
   }
 
   .footer-inner {
+    flex-wrap: wrap;
+    padding-block: var(--space-3);
     min-height: 5rem;
     display: flex;
     align-items: center;

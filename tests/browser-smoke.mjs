@@ -15,7 +15,7 @@ const server = createServer(async (request, response) => {
   if (!path.startsWith(root + sep)) { response.writeHead(403).end(); return; }
   try {
     const body = await readFile(path);
-    response.setHeader('Content-Type', ({ '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' })[extname(path)] || 'application/octet-stream');
+    response.setHeader('Content-Type', ({ '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.pdf': 'application/pdf' })[extname(path)] || 'application/octet-stream');
     response.end(body);
   } catch { response.writeHead(404).end(); }
 });
@@ -33,6 +33,13 @@ try {
   const chart = '/square-root-curve-chart/';
   await page.goto(base + chart);
   await page.locator('#lookup-score').waitFor({ state: 'visible' });
+  for (const [raw, curved] of [[66, '81.2'], [72, '84.9'], [77, '87.7'], [86, '92.7']]) {
+    const shortcut = page.locator(`.score-shortcuts a[href="#score-example-${raw}"]`);
+    assert.equal(await shortcut.textContent(), `${raw}% → ${curved}%`);
+    await shortcut.click();
+    assert.equal(new URL(page.url()).hash, `#score-example-${raw}`);
+    assert.ok((await page.locator(`#score-example-${raw}`).textContent()).includes(`${curved}%`));
+  }
   for (const [score, expected] of [['0', '0%'], ['100', '100%'], ['66', '81.2%'], ['72', '84.9%'], ['77', '87.7%'], ['86', '92.7%'], ['64.5', '80.3%']]) {
     await page.locator('#lookup-score').fill(score);
     assert.equal(await page.locator('#lookup-result').textContent(), expected);
@@ -47,10 +54,15 @@ try {
   await page.keyboard.press('ArrowUp');
   assert.equal(await page.locator('#lookup-result').textContent(), '85.4%');
   await page.keyboard.press('Tab');
+  assert.equal(await page.locator('.print-chart').evaluate(node => node === document.activeElement), true);
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
   assert.equal(await page.locator('#table-filter').evaluate(node => node === document.activeElement), true);
   await page.locator('#table-filter').fill('72');
   assert.equal(await page.locator('#score-table tbody tr:visible').count(), 1);
   assert.match(await page.locator('#filter-status').textContent(), /^1 score shown/);
+  assert.equal(await page.locator('#lookup-result-label').textContent(), 'Curved from 73%');
+  assert.equal(await page.locator('#lookup-score').inputValue(), '73');
   await page.locator('#table-filter').fill('999');
   assert.equal(await page.locator('#score-table tbody tr:visible').count(), 0);
   assert.equal(await page.locator('#filter-empty').isVisible(), true);
@@ -58,8 +70,13 @@ try {
   assert.equal(await page.locator('#score-table tbody tr:visible').count(), 19);
   await page.evaluate(() => { window.printCalls = 0; window.print = () => window.printCalls++; });
   await page.locator('.print-chart').click();
-  await page.locator('.download-pdf').click();
-  assert.equal(await page.evaluate(() => window.printCalls), 2);
+  const [chartDownload] = await Promise.all([
+    page.waitForEvent('download'),
+    page.locator('.download-pdf').click(),
+  ]);
+  assert.equal(chartDownload.suggestedFilename(), 'square-root-curve-chart.pdf');
+  assert.ok((await readFile(await chartDownload.path())).subarray(0, 5).equals(Buffer.from('%PDF-')));
+  assert.equal(await page.evaluate(() => window.printCalls), 1);
   await page.emulateMedia({ media: 'print' });
   assert.equal(await page.locator('.chart-table-desktop').isVisible(), true);
   assert.equal(await page.locator('.score-reference').isVisible(), false);
@@ -68,7 +85,7 @@ try {
   await page.locator('#table-filter').fill('');
   assert.equal(await page.locator('#score-table tbody tr:visible').count(), 101);
 
-  for (const route of ['/', chart, '/grade-curve-calculator/']) {
+  for (const route of ['/', chart, '/grade-curve-calculator/', '/methodology/', '/privacy/', '/terms/']) {
     for (const width of [320, 375, 768, 1280]) {
       await page.setViewportSize({ width, height: 900 });
       const response = await page.goto(base + route);
@@ -76,6 +93,16 @@ try {
       assert.equal(await page.locator('h1').count(), 1);
       const dimensions = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }));
       assert.ok(dimensions.content <= dimensions.viewport, `${route} at ${width}px: ${JSON.stringify(dimensions)}`);
+      if (route === chart && width === 375) {
+        const positions = await page.evaluate(() => ({
+          lookup: document.querySelector('#lookup-score').getBoundingClientRect().top,
+          result: document.querySelector('#lookup-result').getBoundingClientRect().bottom,
+          filter: document.querySelector('#table-filter').getBoundingClientRect().top,
+          table: document.querySelector('#score-table').getBoundingClientRect().top,
+        }));
+        assert.ok(positions.lookup < 600 && positions.result < 812, `Mobile lookup/result: ${JSON.stringify(positions)}`);
+        assert.ok(positions.filter < 812 && positions.table - positions.filter < 180, `Mobile filter/results proximity: ${JSON.stringify(positions)}`);
+      }
     }
   }
   if (process.env.QA_SCREENSHOT_DIR) {
@@ -87,6 +114,11 @@ try {
   }
 
   await page.goto(base + '/');
+  const [homeDownload] = await Promise.all([
+    page.waitForEvent('download'),
+    page.locator('.download-pdf').click(),
+  ]);
+  assert.equal(homeDownload.suggestedFilename(), 'square-root-curve-chart.pdf');
   await page.locator('#raw-score').fill('72');
   assert.equal((await page.locator('#curved-score').textContent()).trim(), '84.9%');
   assert.equal(await page.locator('#graph-current-label').textContent(), '72 → 84.9');
@@ -110,6 +142,8 @@ try {
   await noJS.route('https://**/*', route => route.abort());
   const staticPage = await noJS.newPage();
   await staticPage.goto(base + chart);
+  assert.equal(await staticPage.locator('.download-pdf').getAttribute('href'), '/square-root-curve-chart.pdf');
+  assert.equal(await staticPage.locator('.download-pdf').getAttribute('download'), '');
   assert.equal(await staticPage.locator('#score-table tbody tr:visible').count(), 101);
   assert.equal(await staticPage.locator('.lookup-controls').isVisible(), false);
   assert.equal(await staticPage.locator('.formula-methods article').count(), 4);

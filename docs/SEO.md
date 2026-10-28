@@ -49,3 +49,5 @@ Before adding structured data, verify current Google-supported documentation, de
 Use descriptive, natural internal-link anchors without aggressive exact-match repetition. The exact topical brand makes artificial keyword-rich anchors unnecessary.
 
 Accuracy and usefulness take priority over page count. Build a specialist resource, not a generic calculator network.
+
+`/methodology/` documents implemented formulas, input rules, rounding, batch summaries, verification and limitations. It supports calculation transparency; keep it distinct from the homepage's formula tutorial and link it from the shared footer.

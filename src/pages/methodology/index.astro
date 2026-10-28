@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Container from '../../components/Container.astro';
+---
+
+<BaseLayout
+  title="Calculation Methodology | SquareRootCurve.com"
+  description="How our grading calculators validate scores, apply formulas, round results and calculate class averages, with worked checks and limitations."
+  canonical="https://squarerootcurve.com/methodology/"
+>
+  <Container class="methodology">
+    <header class="reference-heading">
+      <p class="eyebrow">Calculation reference</p>
+      <h1>How Our Calculators Work</h1>
+      <p>Maintained by <a class="reference-link" href="https://www.linkedin.com/in/zeeshan-sarwar-32996a3a">Zeeshan Sarwar</a> · Mathematical verification: <time datetime="2026-10-28">28 October 2026</time>.</p>
+      <p>SquareRootCurve.com applies explicit mathematical formulas to the scores you enter. This page explains the calculation rules and their limits so you can check a result yourself.</p>
+    </header>
+
+    <section aria-labelledby="square-root-method">
+      <h2 id="square-root-method">Square root grades, points and targets</h2>
+      <p>For a raw percentage <var>p</var> between 0 and 100, the curved percentage is <code>10 × √p</code>, equivalently <code>100 × √(p / 100)</code>. The boost is the curved percentage minus the raw percentage, expressed in percentage points.</p>
+      <p>For example, 64% becomes 80%, a gain of 16 percentage points. Both endpoints remain unchanged: 0% → 0% and 100% → 100%. The largest absolute boost is 25 percentage points, at a raw score of 25%.</p>
+      <p>You can verify that maximum algebraically: <code>10 × √p − p = 25 − (√p − 5)²</code>. A square is never negative, so the boost cannot exceed 25; it reaches 25 when <var>p</var> is 25.</p>
+      <p>For earned points <var>e</var> out of possible points <var>t</var>, we first calculate <code>p = (e / t) × 100</code>. Thus 32 out of 50 becomes 64%, then curves to 80%. Applying the formula directly to 32 would be incorrect for this assessment.</p>
+      <p>The reverse calculator solves for the raw percentage: <code>p = (c / 10)²</code>, where <var>c</var> is the desired curved percentage. A target of 80% requires 64% raw. On a test worth 50 points, that is 32 points before any instructor-specific rounding.</p>
+      <a class="reference-link" href="/#calculator">Use the square root calculator</a>
+    </section>
+
+    <section aria-labelledby="comparison-methods">
+      <h2 id="comparison-methods">The four comparison methods</h2>
+      <p>The <a class="reference-link" href="/grade-curve-calculator/">Grade Curve Calculator</a> compares these adjustments to the same raw percentage. Here, <var>a</var> is the number of percentage points added and <var>h</var> is the highest class score as a percentage.</p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Calculation formulas and examples">
+        <table class="examples-table">
+          <caption>Example: raw 64%, add 5 percentage points, class high 80%.</caption>
+          <thead><tr><th scope="col">Method</th><th scope="col">Formula</th><th scope="col">Result</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Flat points</th><td><code>min(100, p + a)</code></td><td>69%</td></tr>
+            <tr><th scope="row">Square root</th><td><code>10 × √p</code></td><td>80%</td></tr>
+            <tr><th scope="row">Proportional scaling</th><td><code>p × (100 / h)</code></td><td>80%</td></tr>
+            <tr><th scope="row">Add top-score gap</th><td><code>min(100, p + 100 − h)</code></td><td>84%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Scaling multiplies scores by a common factor; adding the top-score gap adds the same amount. They are different methods. Flat-point and gap results are capped at 100%. Scaling requires the raw score to be no higher than the stated class high, so its result is also at most 100%.</p>
+    </section>
+
+    <section aria-labelledby="validation">
+      <h2 id="validation">Input validation and rounding</h2>
+      <p>Percentage inputs and reverse targets must be finite numbers from 0 through 100; decimals are accepted. Empty input is distinct from zero. Points possible must be greater than zero, and points earned must be nonnegative and no greater than points possible. Extra-credit inputs above the maximum are not supported.</p>
+      <p>Added percentage points must be nonnegative. The class high must be greater than zero and at most 100%; proportional scaling also rejects a raw score above that high. Invalid inputs show an error or unavailable result instead of silently changing the entered score.</p>
+      <p>Calculations use JavaScript floating-point numbers at their available precision. Results are rounded for display to the nearest tenth, with unnecessary “.0” omitted. For example, 50% curves to 70.710678…%, displayed as 70.7%. Displayed numbers may not reproduce an unrounded calculation exactly. Official final rounding follows your instructor’s policy.</p>
+    </section>
+
+    <section aria-labelledby="class-results">
+      <h2 id="class-results">Class averages, table and graph</h2>
+      <p>The batch calculator accepts percentages separated by commas, spaces, tabs or new lines. Each valid score is curved individually, in input order. Invalid entries are reported and excluded from the displayed results and averages; check those errors before using the summary. A pasted column must contain scores, not student names or identifiers.</p>
+      <p>Raw average, curved average and average boost are arithmetic means of the accepted scores and their unrounded results. We do not curve the raw average to obtain the curved average: 25% and 81% curve to 50% and 90%, averaging 70%. Curving their raw mean of 53% instead gives about 72.8%.</p>
+      <p>The <a class="reference-link" href="/square-root-curve-chart/">0–100 reference table</a> uses the same formula for all 101 whole-number scores. The graph connects 51 formula-generated sample points; it is a visual approximation, while the current score marker is calculated directly. Download PDF saves a complete one-page chart generated from the shared calculation functions; Print chart opens the browser print dialog. Both include all 101 scores regardless of filtering.</p>
+      <p>Interactive calculations run in your browser. The calculator code does not upload entered scores to a calculation service. Copy results uses your browser’s clipboard permission. This describes score processing, not a claim that browsing the website makes no network requests.</p>
+    </section>
+
+    <section aria-labelledby="verification">
+      <h2 id="verification">How we check the calculations</h2>
+      <p>The calculator, table and graph share calculation functions. Automated checks cover known values such as 0 → 0, 25 → 50, 64 → 80 and 100 → 100; decimal results; invalid inputs; points normalization; and raw-to-curved-to-reverse consistency within floating-point tolerance.</p>
+      <p>The test suite also compares all 101 table values with the equivalent normalized formula, checks batch averages and distinguishes proportional scaling from gap addition. Browser regression checks exercise inputs, filtering, keyboard access, print styles and mobile overflow. These checks verify the implemented arithmetic and sampled behavior; they are not an independent educational endorsement or a guarantee against every defect.</p>
+      <p>On 28 October 2026, an additional verification compared 10,001 raw percentages and 10,001 reverse targets, sampled every 0.01 percentage point, against independent 60-digit decimal calculations. Differences were below 0.000000000001 percentage points. All 100 values in the teacher chart linked below also matched the formula when rounded to whole numbers.</p>
+    </section>
+
+    <section aria-labelledby="limitations">
+      <h2 id="limitations">What these results do—and do not—mean</h2>
+      <p>The square root curve preserves score order before display rounding, but changes the gaps between scores. Rounding and caps can make distinct scores appear equal. Neither rank preservation nor a higher percentage proves that a grading policy is fair or that learning has improved.</p>
+      <p>These tools do not choose an appropriate curve, implement an official AP or examination-board scoring system, assign universal letter grades, or calculate statistical bell curves. Confirm the method, passing threshold, caps and rounding with your instructor or institution. Keep original scores and apply an adjustment only once unless the policy explicitly says otherwise.</p>
+      <a class="reference-link" href="/grade-curve-calculator/#classroom-guidance">Read the classroom guidance and limitations</a>
+    </section>
+
+    <section aria-labelledby="references">
+      <h2 id="references">References and scope of verification</h2>
+      <p><a class="reference-link" href="https://teach.yauger.net/apworld/classinfo/squarerootcurve.pdf">Teacher’s Square Root Curve Chart (PDF)</a>: a classroom reference covering original scores 1–100. Its values agree with <code>10 × √p</code> rounded to the nearest whole number. For example, it lists 72 → 85 and 77 → 88; our more precise display gives 84.9% and 87.7%. This is a presentation difference, not a different curve.</p>
+      <p><a class="reference-link" href="https://www.ats.amherst.edu/software/excel/excel-grading/excel-grades/">Amherst College IT: Calculating Grades with Excel</a>, by Andy Anderson (March 2002), explains constant, linear and nonlinear grade adjustments and distinguishes displayed precision from rounding. It supports the distinction between grading methods; it does not prescribe our particular four methods or caps.</p>
+      <p>Our reverse formula and points formula follow algebraically from the stated square root transformation. The 100% caps, accepted input ranges and one-decimal display are this tool’s documented choices, not universal grading requirements. These references demonstrate mathematical consistency and grading context; they do not endorse this website or establish that a curve is appropriate for a particular class.</p>
+    </section>
+
+    <section aria-labelledby="maintainer">
+      <h2 id="maintainer">Maintainer and calculation corrections</h2>
+      <p>SquareRootCurve.com is maintained by <a class="reference-link" href="https://www.linkedin.com/in/zeeshan-sarwar-32996a3a">Zeeshan Sarwar, whose public profile is on LinkedIn</a>. This site provides mathematical grading tools and explanations; it does not represent a school, examination board or independent academic review body.</p>
+      <p>For a calculation concern, use the maintainer’s LinkedIn profile to get in touch. Include the page address, original score, points possible if relevant, method selected, result shown and the result you expected. Do not include student names, IDs or class lists.</p>
+      <p>A useful correction can be reproduced from those inputs and checked against the stated formula. Mathematical correctness and grading policy are separate: questions about which curve or rounding rule applies to an official grade belong with the instructor or institution.</p>
+    </section>
+  </Container>
+</BaseLayout>
+
+<style>
+  .methodology { max-width: 58rem; padding-block: var(--space-6); }
+  .reference-heading { max-width: none; }
+  h1 { font-family: var(--font-editorial); font-size: clamp(2.5rem, 6vw, 4rem); line-height: 1.1; }
+  section { padding-block: var(--space-5); border-bottom: 1px solid var(--rule); }
+  h2 { font-family: var(--font-editorial); font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.25; }
+  p { margin-block: var(--space-3); }
+  code { font-family: var(--font-mono); overflow-wrap: anywhere; }
+  .table-scroll { overflow-x: auto; margin-block: var(--space-4); }
+  table { min-width: 34rem; }
+  caption { text-align: left; padding-bottom: var(--space-3); font-family: var(--font-interface); }
+</style>

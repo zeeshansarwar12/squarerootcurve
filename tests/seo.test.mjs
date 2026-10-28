@@ -16,8 +16,19 @@ test('all 101 reference values match an independent normalized formula', () => {
 });
 
 const built = existsSync(new URL('../dist/index.html', import.meta.url));
+
+test('downloadable PDF contains the complete independently checked score table', () => {
+  const pdf = readFileSync(new URL('../public/square-root-curve-chart.pdf', import.meta.url), 'latin1');
+  assert.ok(pdf.startsWith('%PDF-'));
+  const numbers = [...pdf.matchAll(/\((\d+(?:\.\d+)?)\) Tj/g)].map(match => match[1]);
+  assert.equal(numbers.length, 202);
+  for (let raw = 0; raw <= 100; raw++) {
+    assert.equal(numbers[raw * 2], String(raw));
+    assert.equal(Number(numbers[raw * 2 + 1]), Math.round(1000 * Math.sqrt(raw / 100)) / 10);
+  }
+});
 test('built SEO, sitemap, reference values and internal links', { skip: !built && 'Run npm run build first to verify generated HTML.' }, () => {
-  const routes = ['/', '/square-root-curve-chart/', '/grade-curve-calculator/'];
+  const routes = ['/', '/square-root-curve-chart/', '/grade-curve-calculator/', '/methodology/', '/privacy/', '/terms/'];
   const pages = new Map(routes.map(route => [route, readFileSync(new URL(`../dist${route}index.html`, import.meta.url), 'utf8')]));
   const titles = new Set();
   const descriptions = new Set();
@@ -44,9 +55,9 @@ test('built SEO, sitemap, reference values and internal links', { skip: !built &
     }
     for (const [, json] of html.matchAll(/<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/gs)) JSON.parse(json);
   }
-  assert.equal(titles.size, 3);
-  assert.equal(descriptions.size, 3);
-  assert.equal([...sitemap.matchAll(/<loc>/g)].length, 3);
+  assert.equal(titles.size, routes.length);
+  assert.equal(descriptions.size, routes.length);
+  assert.equal([...sitemap.matchAll(/<loc>/g)].length, routes.length);
   const chart = pages.get('/square-root-curve-chart/');
   assert.match(chart, /<h1[^>]*>Square Root Curve Table \(0–100\)<\/h1>/);
   const rows = [...chart.matchAll(/<tr data-raw="(\d+)"[^>]*>\s*<th[^>]*>(\d+)<\/th>\s*<td[^>]*>([\d.]+)<\/td>/g)];

@@ -321,12 +321,12 @@ const structuredData = {
         <div class="chart-actions">
           <div class="chart-action-buttons">
             <button class="print-chart" type="button">Print chart</button>
-            <button class="download-pdf" type="button" aria-describedby="export-help">
+            <a class="download-pdf" href="/square-root-curve-chart.pdf" download aria-describedby="export-help">
               Download PDF
-            </button>
+            </a>
           </div>
           <p id="export-help" class="export-help">
-            Opens the print dialog. Choose “Save as PDF” to save a copy.
+            Download the complete one-page PDF, or use Print chart to print.
           </p>
         </div>
       </div>
@@ -690,7 +690,7 @@ const structuredData = {
           </p>
           <p>
             The formula takes the square root of the raw percentage and multiplies it by 10.
-            Scores below 100 increase, while 100 remains 100.
+            Scores between 0 and 100 increase; both 0 and 100 remain unchanged.
           </p>
           <a class="reference-link" href="#calculator">Try the formula in the calculator</a>
         </div>
@@ -751,6 +751,33 @@ const structuredData = {
       </div>
     </section>
 
+    <section id="common-mistakes" class="reference-section formula-reference-section" aria-labelledby="mistakes-title">
+      <header class="reference-heading">
+        <h2 id="mistakes-title">Common Square Root Curve Mistakes</h2>
+      </header>
+      <div class="formula-methods">
+        <article>
+          <h3>Using points as percentages</h3>
+          <p>32 out of 50 is 64%, which curves to 80%. Applying 10 × √32 directly would give about 56.6%, the wrong result for this test.</p>
+          <a class="reference-link" href="#points-calculator">Convert earned points correctly</a>
+        </article>
+        <article>
+          <h3>Curving an already curved grade</h3>
+          <p>A raw 64% becomes 80%. Applying the formula again to 80 gives about 89.4%—a second adjustment, not the original result. Start with the unadjusted score unless your instructor explicitly specifies otherwise.</p>
+        </article>
+        <article>
+          <h3>Assuming every score will pass</h3>
+          <p>If the passing threshold is 60%, a raw 36% curves to exactly 60%. For a 70% threshold, the required raw score is 49%. Passing and letter-grade cutoffs depend on your grading policy.</p>
+          <a class="reference-link" href="#reverse-calculator">Find the raw score for your target</a>
+        </article>
+        <article>
+          <h3>Rounding before finishing</h3>
+          <p>Keep the original score and full calculation precision until the final result. For example, 50% curves to 70.710…%, displayed here as 70.7%. Your instructor may use a different final rounding rule.</p>
+          <a class="reference-link" href="/grade-curve-calculator/#classroom-guidance">Review when a grading curve is appropriate</a>
+        </article>
+      </div>
+    </section>
+
     <section id="examples" class="reference-section examples-section" aria-labelledby="examples-title">
       <header class="reference-heading">
         <div class="section-kicker">
@@ -782,7 +809,7 @@ const structuredData = {
           </table>
           <p class="examples-note">
             Perfect-square values produce clean whole-number results. Need the full score table? View the{' '}
-            <a class="reference-link" href="/square-root-curve-chart/#score-table">searchable 0–100 square root curve table</a>.
+            <a class="reference-link" href="/square-root-curve-chart/#chart">searchable 0–100 square root curve table and score lookup</a>.
           </p>
         </div>
 
@@ -879,6 +906,10 @@ const structuredData = {
           <h3><a class="reference-link" href="/grade-curve-calculator/">Grade Curve Calculator</a></h3>
           <p>Compare square root, linear, and other grade-curving methods.</p>
         </article>
+        <article>
+          <h3><a class="reference-link" href="/methodology/">How These Results Are Calculated</a></h3>
+          <p>Review the formulas, input rules, rounding, reference sources and verification checks. Your instructor determines the grading policy.</p>
+        </article>
       </div>
     </section>
   </Container>
@@ -904,7 +935,6 @@ const structuredData = {
   const errorOutput = document.querySelector<HTMLElement>('#score-error');
   const resultZone = document.querySelector<HTMLElement>('.result-zone');
   const printButton = document.querySelector<HTMLButtonElement>('.print-chart');
-  const downloadPdfButton = document.querySelector<HTMLButtonElement>('.download-pdf');
   const graphCurrent = document.querySelector<SVGGElement>('#graph-current');
   const graphGuideX = document.querySelector<SVGLineElement>('#graph-guide-x');
   const graphGuideY = document.querySelector<SVGLineElement>('#graph-guide-y');
@@ -1012,7 +1042,6 @@ const structuredData = {
   }
 
   printButton?.addEventListener('click', () => window.print());
-  downloadPdfButton?.addEventListener('click', () => window.print());
   document.querySelectorAll<HTMLFormElement>('form').forEach((form) => {
     form.addEventListener('submit', (event) => event.preventDefault());
   });

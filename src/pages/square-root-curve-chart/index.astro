@@ -47,38 +47,36 @@ const structuredData = {
   <Container class="opening">
     <header class="opening-copy">
       <nav aria-label="Breadcrumb"><a href="/">Home</a> / <span aria-current="page">Square Root Curve Table</span></nav>
-      <p class="eyebrow">Grading reference</p>
       <h1>Square Root Curve Table (0–100)</h1>
-      <p class="lede">Square root grading converts an original percentage to a curved grade using 10 × √score. Look up every whole-number score, calculate decimals, or print the complete chart.</p>
-      <p><a class="reference-link" href="/#calculator">Open the Square Root Curve Calculator</a> or <a class="reference-link" href="#chart">view the printable Square Root Curve Chart</a>.</p>
+      <p class="lede">Look up grades with 10 × √score, or print the complete 0–100 chart.</p>
     </header>
 
     <section id="chart" class="chart-section" aria-labelledby="chart-title">
-      <div class="chart-heading">
+      <ScoreReference>
+      <div slot="table-heading" class="chart-heading">
         <div class="chart-title-group">
-          <div class="section-kicker">
-            <span aria-hidden="true">01</span>
-            <span>Chart</span>
-          </div>
           <h2 id="chart-title">Complete 0–100 Score Chart</h2>
-          <p>
-            Values use the formula <strong>curved grade = 10 × √raw grade</strong> and are rounded to one decimal place where needed.
-          </p>
         </div>
         <div class="chart-actions">
           <div class="chart-action-buttons">
             <button class="print-chart" type="button">Print chart</button>
-            <button class="download-pdf" type="button" aria-describedby="export-help">
+            <a class="download-pdf" href="/square-root-curve-chart.pdf" download aria-describedby="export-help">
               Download PDF
-            </button>
+            </a>
           </div>
           <p id="export-help" class="export-help">
-            Opens the print dialog. Choose “Save as PDF” to save a copy.
+            Download the complete one-page PDF, or use Print chart to print.
           </p>
         </div>
       </div>
 
-      <ScoreReference />
+      <p class="score-shortcuts">
+        Common score answers:
+        {[66, 72, 77, 86].map((raw, index) => (
+          <>{index > 0 && ' · '}<a class="reference-link" href={`#score-example-${raw}`}>{raw}% → {formatCurveValue(chartEntries[raw].curved)}%</a></>
+        ))}
+      </p>
+      </ScoreReference>
 
       <div class="print-heading" aria-hidden="true">
         <div class="print-brand">
@@ -148,7 +146,7 @@ const structuredData = {
       <p>Use an original score on a 0–100 percentage scale. Take its square root, then multiply by 10. Results below are rounded to the nearest tenth; calculations keep full precision. For a test out of another total, convert earned points to a percentage first.</p>
       <div class="formula-methods">
         {[66, 72, 77, 86].map((raw) => (
-          <article>
+          <article id={`score-example-${raw}`}>
             <h3>What is {raw} on a square root curve?</h3>
             <p class="calculation-line">10 × √{raw} ≈ {formatCurveValue(chartEntries[raw].curved)}%</p>
             <p>An original score of {raw}% becomes approximately {formatCurveValue(chartEntries[raw].curved)}%, a gain of {formatCurveValue(chartEntries[raw].curved - raw)} percentage points.</p>
@@ -164,7 +162,7 @@ const structuredData = {
         <details><summary>Do 0 and 100 change?</summary><p>No. Zero stays 0% and 100 stays 100%. Scores between these endpoints increase under this formula.</p></details>
         <details><summary>Why is my result different from my teacher’s grade?</summary><p>Your teacher may use a different curve or rounding policy. This table uses 10 × √score and displays up to one decimal place; confirm the grading policy before treating it as an official grade.</p></details>
         <details><summary>Can I use points instead of a percentage?</summary><p>Convert points first: 36 out of 50 is 72%, which curves to approximately {formatCurveValue(chartEntries[72].curved)}%. The <a class="reference-link" href="/#points-calculator">points-based calculator</a> performs that conversion for you.</p></details>
-        <details><summary>How do I save or print the full table?</summary><p>Choose Print chart or Download PDF above. Both open your browser’s print dialog; select Save as PDF to download. The full 101-score chart prints even when the onscreen table is filtered.</p></details>
+        <details><summary>How do I save or print the full table?</summary><p>Choose Download PDF to save the complete one-page chart directly, or Print chart to open your browser’s print dialog. Both include all 101 scores, even when the onscreen table is filtered.</p></details>
       </div>
     </section>
 
@@ -176,6 +174,8 @@ const structuredData = {
           Use the <a class="reference-link" href="/#calculator">Square Root Curve Calculator</a> for a live result,
           or review the <a class="reference-link" href="/#formula">formula and worked examples</a>.
           To compare other methods, use the <a class="reference-link" href="/grade-curve-calculator/">Grade Curve Calculator</a>.
+          See our <a class="reference-link" href="/methodology/#verification">calculation checks</a>
+          and <a class="reference-link" href="/methodology/#references">reference sources</a> for how the chart is verified.
         </p>
       </header>
     </section>
@@ -186,9 +186,13 @@ const structuredData = {
   .chart-table-desktop { display: none; }
   .opening-copy nav { margin-bottom: var(--space-3); font-size: var(--text-sm); }
   .opening-copy > p:last-child { margin-top: var(--space-3); }
+  .chart-section { padding-top: var(--space-4); }
+  .chart-heading { padding-block: var(--space-3); }
+  .chart-title-group h2 { font-size: 1.5rem; }
+  .score-shortcuts { padding-block: var(--space-3); }
+  .formula-methods article { scroll-margin-top: var(--space-4); }
 </style>
 
 <script>
   document.querySelector<HTMLButtonElement>('.print-chart')?.addEventListener('click', () => window.print());
-  document.querySelector<HTMLButtonElement>('.download-pdf')?.addEventListener('click', () => window.print());
 </script>
